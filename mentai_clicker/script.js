@@ -615,7 +615,34 @@ const game = {
     this.recalcRates();
     this.renderUpgrades();
     this.updateUI();
+
+    // スマホなら最初のタブをアクティブに
+    if (window.innerWidth <= 768) {
+      this.switchTab('sea');
+    }
+
     this.loop();
+  },
+
+  switchTab(tabName) {
+    // タブボタンの状態切り替え
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+      if (btn.dataset.target === tabName) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    // パネルの表示切り替え
+    const panels = document.querySelectorAll('.panel');
+    panels.forEach(panel => {
+      if (panel.dataset.tab === tabName) {
+        panel.classList.add('active');
+      } else {
+        panel.classList.remove('active');
+      }
+    });
   },
 
   costOf(key) {

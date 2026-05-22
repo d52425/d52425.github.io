@@ -40,9 +40,16 @@
       </div>
     </div>
 
+    <!-- スマホ用タブバー -->
+    <div class="tab-bar mobile-only">
+      <button class="tab-btn active" data-target="sea" onclick="game.switchTab('sea')">🌊 漁業</button>
+      <button class="tab-btn" data-target="craft" onclick="game.switchTab('craft')">🔴 製造</button>
+      <button class="tab-btn" data-target="shop" onclick="game.switchTab('shop')">🏪 販売</button>
+    </div>
+
     <div class="main-layout">
       <!-- 左：漁業ゾーン -->
-      <section class="panel panel-sea">
+      <section class="panel panel-sea" data-tab="sea">
         <h2>🌊 漁業ゾーン</h2>
         <p class="panel-desc">魚卵を確保するのだ〜！</p>
         
@@ -59,7 +66,7 @@
       </section>
 
       <!-- 中央：めんたい工房 -->
-      <section class="panel panel-main">
+      <section class="panel panel-main" data-tab="craft">
         <h2>🔴 めんたい工房</h2>
         <p class="panel-desc">魚卵を漬けて、極上のめんたいこに〜！</p>
 
@@ -80,13 +87,13 @@
         </div>
 
         <div class="upgrades">
-          <h3>工房アップグレード</h3>
+          <h3>工房＆販売アップグレード</h3>
           <div class="upgrade-list" id="upg-make"></div>
         </div>
       </section>
 
       <!-- 右：販売ゾーン -->
-      <section class="panel panel-shop">
+      <section class="panel panel-shop" data-tab="shop">
         <h2>🏪 販売ゾーン</h2>
         <p class="panel-desc">めんたいこを売りさばくよ〜！</p>
 
