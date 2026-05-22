@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>めんたい工房 🍣 〜しゃりの海老式経営〜</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-wrapper">
+    <header class="header">
+      <h1>🍣 めんたい工房</h1>
+      <p class="subtitle">〜しゃりの海老式めんたい経営〜</p>
+    </header>
+
+    <div class="resource-bar">
+      <div class="resource-box">
+        <div class="resource-icon">🐟</div>
+        <div class="resource-info">
+          <div class="resource-name">魚卵（原料）</div>
+          <div class="resource-value" id="res-roe">0</div>
+          <div class="resource-rate" id="rate-roe">+0.0 /秒</div>
+        </div>
+      </div>
+      <div class="resource-box highlight">
+        <div class="resource-icon">🍣</div>
+        <div class="resource-info">
+          <div class="resource-name">めんたいこ（製品）</div>
+          <div class="resource-value" id="res-mentai">0</div>
+          <div class="resource-rate" id="rate-mentai">+0.0 /秒</div>
+        </div>
+      </div>
+      <div class="resource-box">
+        <div class="resource-icon">💰</div>
+        <div class="resource-info">
+          <div class="resource-name">売上（資金）</div>
+          <div class="resource-value" id="res-money">0</div>
+          <div class="resource-rate" id="rate-money">+0.0 /秒</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <!-- 左：漁業ゾーン -->
+      <section class="panel panel-sea">
+        <h2>🌊 漁業ゾーン</h2>
+        <p class="panel-desc">魚卵を確保するのだ〜！</p>
+        
+        <button class="action-btn" id="btn-fish" onclick="game.actionFish()">
+          <span class="btn-icon">🎣</span>
+          <span class="btn-label">漁に出る</span>
+          <span class="btn-hint">魚卵 +1</span>
+        </button>
+
+        <div class="upgrades">
+          <h3>漁業アップグレード</h3>
+          <div class="upgrade-list" id="upg-fish"></div>
+        </div>
+      </section>
+
+      <!-- 中央：めんたい工房 -->
+      <section class="panel panel-main">
+        <h2>🔴 めんたい工房</h2>
+        <p class="panel-desc">魚卵を漬けて、極上のめんたいこに〜！</p>
+
+        <div class="main-action">
+          <button class="big-btn" id="btn-make" onclick="game.actionMake()">
+            <span class="big-icon">🍣</span>
+            <span class="big-label">めんたいを漬ける</span>
+            <span class="big-hint">魚卵 -1 → めんたいこ +1</span>
+          </button>
+        </div>
+
+        <div class="sub-actions">
+          <button class="action-btn" id="btn-sell" onclick="game.actionSell()">
+            <span class="btn-icon">🏪</span>
+            <span class="btn-label">販売する</span>
+            <span class="btn-hint">めんたいこ -1 → 💰 +<span id="sell-price">10</span></span>
+          </button>
+        </div>
+
+        <div class="upgrades">
+          <h3>工房アップグレード</h3>
+          <div class="upgrade-list" id="upg-make"></div>
+        </div>
+      </section>
+
+      <!-- 右：販売ゾーン -->
+      <section class="panel panel-shop">
+        <h2>🏪 販売ゾーン</h2>
+        <p class="panel-desc">めんたいこを売りさばくよ〜！</p>
+
+        <button class="action-btn" id="btn-shop" onclick="game.actionSell()">
+          <span class="btn-icon">🛒</span>
+          <span class="btn-label">店頭で売る</span>
+          <span class="btn-hint">めんたいこ -1 → 💰 +<span class="sell-price-static">10</span></span>
+        </button>
+
+        <div class="upgrades">
+          <h3>販売アップグレード</h3>
+          <div class="upgrade-list" id="upg-sell"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="log-area">
+      <div class="log-title">📜 しゃりの経営日誌</div>
+      <div class="log-content" id="log-content"></div>
+    </div>
+
+    <footer class="footer">
+      made with 🦐 by しゃりさん | Blender縛りの会は関係ない
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
