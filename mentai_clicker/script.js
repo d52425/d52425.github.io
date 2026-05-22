@@ -596,14 +596,25 @@ const game = {
   // ---- メソッド ----
 
   init() {
-    // レベル初期化
-    for (const key in this.upgrades) {
-      this.levels[key] = 0;
+    // ローカルストレージからロード試行
+    const loaded = this.tryLoad();
+
+    if (!loaded) {
+      for (const key in this.upgrades) {
+        this.levels[key] = 0;
+      }
+      this.addLog('🦐 「めんたい工房、開店だよ〜！」', 'craft');
+    } else {
+      this.addLog('💾 セーブデータをロードしました！「おかえり〜！」', 'craft');
+      if (this._offlineLog) {
+        this.addLog(this._offlineLog, 'fish');
+        this._offlineLog = null;
+      }
     }
+
+    this.recalcRates();
     this.renderUpgrades();
     this.updateUI();
-    this.addLog('🦐 「めんたい工房、開店だよ〜！」', 'craft');
-    this.recalcRates();
     this.loop();
   },
 
@@ -825,12 +836,111 @@ const game = {
     }
   },
 
+  // ---- セーブ・ロード ----
+  SAVE_KEY: 'mentai_game_save_v1',
+  _saveTimer: 0,
+
+  save() {
+    const data = {
+      version: 1,
+      timestamp: Date.now(),
+      roe: this.roe,
+      mentai: this.mentai,
+      money: this.money,
+      levels: { ...this.levels },
+      totalPlayTime: this.totalPlayTime || 0,
+    };
+    try {
+      localStorage.setItem(this.SAVE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.warn('セーブ失敗:', e);
+    }
+  },
+
+  tryLoad() {
+    try {
+      const raw = localStorage.getItem(this.SAVE_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (!data || data.version !== 1) return false;
+
+      this.roe = data.roe || 0;
+      this.mentai = data.mentai || 0;
+      this.money = data.money || 0;
+      this.totalPlayTime = data.totalPlayTime || 0;
+
+      if (data.levels) {
+        for (const key in data.levels) {
+          if (this.upgrades[key]) {
+            this.levels[key] = Math.min(data.levels[key], this.upgrades[key].maxLevel);
+          }
+        }
+      }
+
+      // レート復元
+      this.recalcRates();
+
+      // オフライン収入計算
+      const now = Date.now();
+      const savedAt = data.timestamp || now;
+      const dt = (now - savedAt) / 1000;
+      const MAX_OFFLINE = 8 * 3600; // 最大8時間分まで
+      const effectiveDt = Math.min(dt, MAX_OFFLINE);
+
+      if (effectiveDt > 60) {
+        // 漁業
+        const roeGain = this.autoFishRate * effectiveDt;
+        this.roe += roeGain;
+
+        // 製造
+        const wantMake = this.autoMakeRate * effectiveDt;
+        const canMake = Math.min(wantMake, this.roe / this.makeCostRoe);
+        this.roe -= canMake * this.makeCostRoe;
+        this.mentai += canMake;
+
+        // 販売
+        const wantSell = this.autoSellRate * effectiveDt;
+        const canSell = Math.min(wantSell, this.mentai);
+        this.mentai -= canSell;
+        const sellPrice = Math.floor(this.baseSellPrice * this.sellMulti);
+        this.money += canSell * sellPrice;
+
+        const hours = Math.floor(effectiveDt / 3600);
+        const mins = Math.floor((effectiveDt % 3600) / 60);
+        const timeStr = hours > 0 ? `${hours}時間${mins}分` : `${mins}分`;
+        this._offlineLog = `💤 オフライン中（${timeStr}）の収入: 🐟+${this.fmt(roeGain)} 🔴+${this.fmt(canMake)} 💰+${this.fmt(canSell * sellPrice)}`;
+      }
+
+      return true;
+    } catch (e) {
+      console.warn('ロード失敗:', e);
+      return false;
+    }
+  },
+
+  clearSave() {
+    try {
+      localStorage.removeItem(this.SAVE_KEY);
+    } catch (e) {}
+    this.addLog('💾 セーブデータを削除しました', 'sea');
+  },
+
   // ---- ゲームループ ----
   lastTick: performance.now(),
   loop() {
     const now = performance.now();
     const dt = (now - this.lastTick) / 1000;
     this.lastTick = now;
+
+    // プレイ時間記録
+    this.totalPlayTime = (this.totalPlayTime || 0) + dt;
+
+    // 自動セーブ（30秒ごと）
+    this._saveTimer = (this._saveTimer || 0) + dt;
+    if (this._saveTimer >= 30) {
+      this._saveTimer = 0;
+      this.save();
+    }
 
     // 漁業自動化
     if (this.autoFishRate > 0) {
@@ -1023,8 +1133,26 @@ document.addEventListener('keydown', (e) => {
     } else if (cheatBuffer.includes('maxall')) {
       game.debugUnlockAll();
       cheatBuffer = '';
+    } else if (cheatBuffer.includes('save')) {
+      game.save();
+      game.addLog('💾 セーブしました！', 'sea');
+      cheatBuffer = '';
+    } else if (cheatBuffer.includes('wipe')) {
+      game.debugReset();
+      game.clearSave();
+      cheatBuffer = '';
     }
   }
+});
+
+// ページ離脱時の緊急セーブ
+window.addEventListener('beforeunload', () => {
+  game.save();
+});
+
+// タブ非表示時にもセーブ
+window.addEventListener('visibilitychange', () => {
+  if (document.hidden) game.save();
 });
 
 // スタート
