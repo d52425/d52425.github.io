@@ -1,0 +1,298 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.g{font-family:var(--font-sans);padding:.75rem 0;min-height:560px}
+.tabs{display:flex;gap:5px;margin-bottom:12px}
+.tab{flex:1;padding:7px 4px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);cursor:pointer;font-size:12px;font-weight:500;color:var(--color-text-secondary);transition:all .12s;text-align:center;line-height:1.4}
+.tab.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-primary)}
+.tab.locked{opacity:.35;cursor:not-allowed}
+.phase{display:none;flex-direction:row;gap:12px}
+.phase.on{display:flex}
+.lft{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px}
+.rgt{width:250px;display:flex;flex-direction:column;gap:5px}
+.mc{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.sc{font-size:11px;color:var(--color-text-secondary);display:flex;gap:10px}
+.bigbtn{width:130px;height:130px;border-radius:50%;border:none;cursor:pointer;font-size:64px;display:flex;align-items:center;justify-content:center;transition:transform .08s;user-select:none}
+.bigbtn:active{transform:scale(.87)}
+.b1{background:linear-gradient(145deg,#c8e8f7,#3a8cb8);box-shadow:0 0 0 5px #ddf0fa}
+.b1:active{box-shadow:0 0 0 2px #ddf0fa}
+.b2{background:radial-gradient(circle at 38% 36%,#f7c3b0,#d45a38);box-shadow:0 0 0 5px #fae8e2}
+.b2:active{box-shadow:0 0 0 2px #fae8e2}
+.b3{background:linear-gradient(145deg,#fdf0c2,#e8a820);box-shadow:0 0 0 5px #fdf6e0}
+.b3:active{box-shadow:0 0 0 2px #fdf6e0}
+.hint{font-size:11px;color:var(--color-text-secondary)}
+.sl{font-size:10px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.06em;text-transform:uppercase;padding:3px 0 2px}
+.si{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);cursor:pointer;width:100%;text-align:left;user-select:none}
+.si:hover:not(.off){background:var(--color-background-secondary)}
+.si:active:not(.off){transform:scale(.97)}
+.si.off{opacity:.35;cursor:not-allowed}
+.si.bought{background:var(--color-background-success)}
+.sii{font-size:19px;width:26px;text-align:center;flex-shrink:0;pointer-events:none}
+.sib{flex:1;min-width:0;pointer-events:none}
+.sin{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.sid{font-size:10px;color:var(--color-text-secondary)}
+.sic{font-size:11px;font-weight:500;white-space:nowrap;flex-shrink:0;pointer-events:none}
+.cnt{font-size:10px;color:var(--color-text-tertiary)}
+.c1{color:#1a6a96}.c2{color:#b83c18}.c3{color:#8a6200}
+.fl{position:fixed;pointer-events:none;font-size:13px;font-weight:500;animation:fu .8s ease-out forwards}
+@keyframes fu{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-52px)}}
+.ms{font-size:11px;padding:3px 9px;border-radius:var(--border-radius-md);border:0.5px solid;animation:pop .25s}
+.ms1{background:#e2f3fb;color:#1a5f82;border-color:#8dcce8}
+.ms2{background:#fde8e0;color:#8a2e10;border-color:#f0b09a}
+.ms3{background:#fdf4db;color:#7a5200;border-color:#e8c860}
+@keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.prog-wrap{width:100%;max-width:190px}
+.prog-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.prog{width:100%;height:5px;background:var(--color-background-secondary);border-radius:3px;overflow:hidden;border:0.5px solid var(--color-border-tertiary)}
+.prog-fill{height:100%;border-radius:3px;transition:width .2s}
+.pf1{background:#4a9fc0}.pf2{background:#d45a38}
+.chip{padding:2px 7px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);font-size:11px}
+</style>
+
+<h2 class="sr-only">めんたいクリッカー 3フェーズ</h2>
+<div class="g">
+  <div class="tabs">
+    <button class="tab active" id="t1" onclick="sw(1)">🎣<br>漁業</button>
+    <button class="tab locked" id="t2" onclick="sw(2)">🫑<br>製造</button>
+    <button class="tab locked" id="t3" onclick="sw(3)">🚚<br>流通</button>
+  </div>
+
+  <div class="phase on" id="p1">
+    <div class="lft">
+      <div class="mc" id="f-cnt">🐟 0 匹</div>
+      <div class="sc"><span id="f-cps">毎秒 0匹</span><span style="color:var(--color-text-tertiary)">累計 <span id="f-tot">0</span></span></div>
+      <button class="bigbtn b1" onclick="tap1(event)">🐟</button>
+      <div class="hint">タップで +1匹</div>
+      <div id="f-prog" class="prog-wrap">
+        <div class="prog-label" id="f-prog-l">🫑 製造フェーズまで…</div>
+        <div class="prog"><div class="prog-fill pf1" id="f-prog-f" style="width:0%"></div></div>
+      </div>
+      <div id="f-ms" style="min-height:18px"></div>
+    </div>
+    <div class="rgt"><div class="sl">漁具・船を買う</div><div id="fs"></div></div>
+  </div>
+
+  <div class="phase" id="p2">
+    <div class="lft">
+      <div class="mc" id="m-cnt">🫑 0 粒</div>
+      <div class="sc"><span id="m-cps">毎秒 0粒</span><span style="color:var(--color-text-tertiary)">累計 <span id="m-tot">0</span></span></div>
+      <button class="bigbtn b2" onclick="tap2(event)">🫑</button>
+      <div class="hint">🐟1匹 → 🫑1粒に仕込む</div>
+      <div class="chip">🐟在庫 <span id="m-fish">0</span></div>
+      <div id="m-prog" class="prog-wrap">
+        <div class="prog-label" id="m-prog-l">🚚 流通フェーズまで…</div>
+        <div class="prog"><div class="prog-fill pf2" id="m-prog-f" style="width:0%"></div></div>
+      </div>
+      <div id="m-ms" style="min-height:18px"></div>
+    </div>
+    <div class="rgt"><div class="sl">仕込み設備を買う</div><div id="ms"></div></div>
+  </div>
+
+  <div class="phase" id="p3">
+    <div class="lft">
+      <div class="mc" id="y-cnt">💰 0 円</div>
+      <div class="sc"><span id="y-cps">毎秒 0円</span><span style="color:var(--color-text-tertiary)">累計 <span id="y-tot">0</span></span></div>
+      <button class="bigbtn b3" onclick="tap3(event)">💰</button>
+      <div class="hint">🫑1粒 → 💰10円で売る</div>
+      <div class="sc">
+        <span class="chip">🐟 <span id="y-fish">0</span></span>
+        <span class="chip">🫑 <span id="y-mentai">0</span></span>
+      </div>
+      <div id="y-ms" style="min-height:18px"></div>
+    </div>
+    <div class="rgt"><div class="sl">販路を広げる</div><div id="ys"></div></div>
+  </div>
+</div>
+
+<script>
+let fish=0, totF=0, mentai=0, totM=0, yen=0, totY=0;
+let unl2=false, unl3=false;
+const U2=100, U3=100;
+
+const FB=[
+  {n:'漁師',     e:'🧑‍🦱',d:'手釣りでコツコツ',    bc:15,    bps:.5,  count:0},
+  {n:'小舟',     e:'🛶', d:'近海に出る',           bc:100,   bps:2,   count:0},
+  {n:'定置網',   e:'🕸️', d:'海に仕掛けて待つ',      bc:800,   bps:8,   count:0},
+  {n:'漁船',     e:'⛵', d:'沖まで出て大漁',        bc:6000,  bps:25,  count:0},
+  {n:'トロール船',e:'🚢',d:'深海まで根こそぎ',      bc:50000, bps:80,  count:0},
+];
+const MB=[
+  {n:'仕込み職人',e:'🧑‍🍳',d:'手作業でほぐす',       bc:60,    bps:.8, con:.4,  count:0},
+  {n:'辛子タル',  e:'🪣',d:'唐辛子でじっくり熟成',  bc:500,   bps:4,  con:2,   count:0},
+  {n:'明太工房',  e:'🏠',d:'本場の技で大量仕込み',  bc:4000,  bps:16, con:7,   count:0},
+  {n:'博多の名店',e:'🏮',d:'全国から注文殺到',       bc:32000, bps:55, con:22,  count:0},
+  {n:'明太工場',  e:'🏭',d:'フル自動化で爆速生産',  bc:250000,bps:200,con:75,  count:0},
+];
+const YB=[
+  {n:'露天店',   e:'🪑',d:'市場の端で立ち売り',    bc:200,    bps:3,   con:.5,  count:0},
+  {n:'土産屋',   e:'🏪',d:'博多駅前の店舗',         bc:2000,   bps:20,  con:2,   count:0},
+  {n:'百貨店',   e:'🏬',d:'全国の百貨店に並ぶ',     bc:18000,  bps:80,  con:7,   count:0},
+  {n:'全国宅配', e:'🚚',d:'産地直送で全国へ',        bc:150000, bps:300, con:22,  count:0},
+  {n:'ECサイト', e:'💻',d:'ネットで爆売れ',          bc:1200000,bps:1200,con:80,  count:0},
+];
+
+function cost(b){ return Math.ceil(b.bc * Math.pow(1.15, b.count)); }
+function fishCps(){ return FB.reduce((s,b)=>s+b.bps*b.count,0); }
+function mCps(){    return MB.reduce((s,b)=>s+b.bps*b.count,0); }
+function mCon(){    return MB.reduce((s,b)=>s+b.con*b.count,0); }
+function yCps(){    return YB.reduce((s,b)=>s+b.bps*b.count,0); }
+function yCon(){    return YB.reduce((s,b)=>s+b.con*b.count,0); }
+
+function fmt(n){
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1e4) return (n/1e4).toFixed(1)+'万';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return Math.floor(n).toString();
+}
+
+// ショップをDOMに一度だけ生成し、以降は属性だけ更新する
+function buildShop(shopId, arr, colorCls, prefix, conIcon){
+  const shop = document.getElementById(shopId);
+  shop.innerHTML = '';
+  const icon = colorCls==='c1'?'🐟':colorCls==='c2'?'🫑':'💰';
+  arr.forEach((b,i)=>{
+    const row = document.createElement('div');
+    row.className = 'si off';
+    row.dataset.idx = i;
+    row.dataset.shop = prefix;
+    const conPart = conIcon && b.con ? `（${icon}${b.con}/秒消費）` : '';
+    row.innerHTML = `
+      <span class="sii">${b.e}</span>
+      <span class="sib">
+        <span class="sin">${b.n} <span class="cnt" id="${prefix}-cnt-${i}"></span></span>
+        <span class="sid">${b.d}${conPart}</span>
+      </span>
+      <span class="sic ${colorCls}" id="${prefix}-cost-${i}">${icon} ${fmt(cost(b))}</span>`;
+    shop.appendChild(row);
+  });
+
+  // イベント委譲：shopコンテナに一つだけリスナーを貼る
+  shop.addEventListener('click', e=>{
+    const row = e.target.closest('[data-idx]');
+    if(!row || row.classList.contains('off')) return;
+    const idx = parseInt(row.dataset.idx);
+    if(prefix==='fb') buyF(idx);
+    else if(prefix==='mb') buyM(idx);
+    else if(prefix==='yb') buyY(idx);
+  });
+}
+
+// tickごとにclassとテキストだけ更新（DOMは壊さない）
+function updateShop(arr, prefix, wallet){
+  arr.forEach((b,i)=>{
+    const row = document.querySelector(`[data-shop="${prefix}"][data-idx="${i}"]`);
+    if(!row) return;
+    const c = cost(b);
+    const can = Math.floor(wallet) >= c;
+    row.classList.toggle('off', !can);
+    const cntEl = document.getElementById(`${prefix}-cnt-${i}`);
+    if(cntEl) cntEl.textContent = b.count>0 ? `×${b.count}` : '';
+    const costEl = document.getElementById(`${prefix}-cost-${i}`);
+    const icon = prefix==='fb'?'🐟':prefix==='mb'?'🫑':'💰';
+    if(costEl) costEl.textContent = `${icon} ${fmt(c)}`;
+  });
+}
+
+function flash(prefix, i){
+  const row = document.querySelector(`[data-shop="${prefix}"][data-idx="${i}"]`);
+  if(!row) return;
+  row.classList.add('bought');
+  setTimeout(()=>row.classList.remove('bought'), 200);
+}
+
+function buyF(i){ const b=FB[i],c=cost(b); if(Math.floor(fish)<c)return; fish-=c; b.count++; updateShop(FB,'fb',fish); updateStats(); }
+function buyM(i){ const b=MB[i],c=cost(b); if(Math.floor(mentai)<c)return; mentai-=c; b.count++; updateShop(MB,'mb',mentai); updateStats(); flash('mb',i); }
+function buyY(i){ const b=YB[i],c=cost(b); if(Math.floor(yen)<c)return; yen-=c; b.count++; updateShop(YB,'yb',yen); updateStats(); flash('yb',i); }
+
+function sw(t){
+  if(t===2&&!unl2||t===3&&!unl3) return;
+  [1,2,3].forEach(i=>{
+    document.getElementById('p'+i).className='phase'+(i===t?' on':'');
+    const lk=(i===2&&!unl2)||(i===3&&!unl3);
+    document.getElementById('t'+i).className='tab'+(i===t?' active':lk?' locked':'');
+  });
+}
+
+function spawnFl(x,y,txt,col){
+  const el=document.createElement('div');
+  el.className='fl'; el.style.cssText=`left:${x-18}px;top:${y}px;color:${col}`;
+  el.textContent=txt; document.body.appendChild(el);
+  setTimeout(()=>el.remove(),850);
+}
+
+function tap1(e){
+  fish+=1; totF+=1;
+  const r=e.currentTarget.getBoundingClientRect();
+  spawnFl(r.left+r.width/2,r.top-6,'+1匹','#1a6a96');
+  updateStats();
+}
+function tap2(e){
+  if(fish<1) return;
+  fish-=1; mentai+=1; totM+=1;
+  const r=e.currentTarget.getBoundingClientRect();
+  spawnFl(r.left+r.width/2,r.top-6,'+1粒','#b83c18');
+  updateStats();
+}
+function tap3(e){
+  if(mentai<1) return;
+  mentai-=1; yen+=10; totY+=10;
+  const r=e.currentTarget.getBoundingClientRect();
+  spawnFl(r.left+r.width/2,r.top-6,'+10円','#8a6200');
+  updateStats();
+}
+
+const FMS=[{at:50,m:'🎉 50匹！漁師デビュー！'},{at:500,m:'🌊 500匹！一人前！'},{at:5000,m:'⚓ 5千匹！海の覇者！'}];
+const MMS=[{at:50,m:'🔥 50粒！仕込み開始！'},{at:500,m:'🌶️ 500粒！辛さ増した！'},{at:5000,m:'⭐ 5千粒！本場の味！'}];
+const YMS=[{at:1000,m:'💴 千円！初売り成功！'},{at:10000,m:'🎊 1万円！軌道に乗った！'},{at:1e5,m:'🌟 10万円！事業拡大！'}];
+let sF=new Set(),sM=new Set(),sY=new Set();
+function chkMs(arr,set,tot,id,cls){arr.forEach(m=>{if(tot>=m.at&&!set.has(m.at)){set.add(m.at);showMs(id,m.m,cls);}});}
+function showMs(id,msg,cls){const el=document.getElementById(id);el.innerHTML=`<div class="ms ${cls}">${msg}</div>`;setTimeout(()=>{el.innerHTML=''},3000);}
+
+function updateStats(){
+  chkMs(FMS,sF,totF,'f-ms','ms1');
+  chkMs(MMS,sM,totM,'m-ms','ms2');
+  chkMs(YMS,sY,totY,'y-ms','ms3');
+
+  if(!unl2&&totF>=U2){unl2=true;document.getElementById('t2').className='tab';document.getElementById('f-prog').style.display='none';}
+  if(!unl3&&totM>=U3){unl3=true;document.getElementById('t3').className='tab';document.getElementById('m-prog').style.display='none';}
+
+  document.getElementById('f-cnt').textContent='🐟 '+fmt(fish)+' 匹';
+  document.getElementById('f-cps').textContent='毎秒 '+fmt(fishCps())+'匹';
+  document.getElementById('f-tot').textContent=fmt(totF);
+  document.getElementById('m-cnt').textContent='🫑 '+fmt(mentai)+' 粒';
+  document.getElementById('m-cps').textContent='毎秒 '+fmt(mCps())+'粒';
+  document.getElementById('m-tot').textContent=fmt(totM);
+  document.getElementById('m-fish').textContent=fmt(fish);
+  document.getElementById('y-cnt').textContent='💰 '+fmt(yen)+'円';
+  document.getElementById('y-cps').textContent='毎秒 '+fmt(yCps())+'円';
+  document.getElementById('y-tot').textContent=fmt(totY)+'円';
+  document.getElementById('y-fish').textContent=fmt(fish);
+  document.getElementById('y-mentai').textContent=fmt(mentai);
+
+  if(!unl2){const p=Math.min(100,totF/U2*100);document.getElementById('f-prog-f').style.width=p+'%';document.getElementById('f-prog-l').textContent=`🫑 製造まであと ${fmt(U2-totF)} 匹`;}
+  if(!unl3){const p=Math.min(100,totM/U3*100);document.getElementById('m-prog-f').style.width=p+'%';document.getElementById('m-prog-l').textContent=`🚚 流通まであと ${fmt(U3-totM)} 粒`;}
+
+  // ショップのon/offだけ更新（DOM再生成なし）
+  updateShop(FB,'fb',fish);
+  updateShop(MB,'mb',mentai);
+  updateShop(YB,'yb',yen);
+}
+
+// 初回のみDOMを生成
+buildShop('fs', FB, 'c1', 'fb', false);
+buildShop('ms', MB, 'c2', 'mb', true);
+buildShop('ys', YB, 'c3', 'yb', true);
+
+setInterval(()=>{
+  const dt=1/20;
+  fish += fishCps()*dt; totF += fishCps()*dt;
+  const mc=mCon()*dt, mAct=Math.min(fish,mc), r=mc>0?mAct/mc:0;
+  fish-=mAct; mentai+=mCps()*r*dt; totM+=mCps()*r*dt;
+  const yc=yCon()*dt, yAct=Math.min(mentai,yc), yr=yc>0?yAct/yc:0;
+  mentai-=yAct; yen+=yCps()*yr*dt; totY+=yCps()*yr*dt;
+  if(fish<0)fish=0; if(mentai<0)mentai=0;
+  updateStats();
+},50);
+
+updateStats();
+</script>
