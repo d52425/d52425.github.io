@@ -1,625 +1,408 @@
 /* === めんたい工房 CSS === */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg: #1a1a2e;
-  --panel: #16213e;
-  --panel-main: #1e2a4a;
+  --bg: #0d0e1a;
+  --bg2: #131425;
+  --pane: #181a2e;
+  --pane-border: #2a2d4a;
   --accent: #ff6b6b;
   --accent2: #ffd93d;
-  --text: #f5f5f5;
-  --text2: #aaaaaa;
-  --success: #6bcb77;
+  --text: #e8e8f0;
+  --text2: #8888a0;
+  --text3: #555577;
+  --fish: #6bcb77;
+  --mentai: #ff6b6b;
+  --money: #ffd93d;
   --info: #4d96ff;
-  --btn: #2c3e6b;
-  --btn-hover: #3d5a9c;
+  --btn: #252840;
+  --btn-hover: #353a5c;
+  --maxed: #a78bfa;
+  --disabled: #555566;
+  --glow-fish: 0 0 12px rgba(107,203,119,0.25);
+  --glow-mentai: 0 0 12px rgba(255,107,107,0.25);
+  --glow-money: 0 0 12px rgba(255,217,61,0.25);
+  --glow-info: 0 0 12px rgba(77,150,255,0.25);
 }
 
 body {
-  font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+  font-family: 'Segoe UI', 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-.game-wrapper {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-/* === Header === */
+/* === ヘッダー === */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
-  border-bottom: 2px solid var(--accent);
-  margin-bottom: 16px;
+  padding: 12px 20px;
+  background: rgba(13, 14, 26, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--pane-border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
-.header-left {
-  text-align: center;
-  flex: 1;
+.header-left { display: flex; align-items: baseline; gap: 10px; }
+.header h1 { font-size: 1.4rem; color: var(--accent); }
+.header h1 .version {
+  font-size: 0.7rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  vertical-align: middle;
 }
-.header h1 {
-  font-size: 2.2rem;
-  color: var(--accent);
-  text-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
-}
-.subtitle {
-  color: var(--text2);
-  margin-top: 4px;
-  font-size: 0.95rem;
-}
+.subtitle { font-size: 0.8rem; color: var(--text2); margin-left: 4px; }
 
-/* === Share Button === */
 .share-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  background: linear-gradient(135deg, #1da1f2, #0d8ecf);
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 50px;
-  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  background: #1da1f2; color: #fff;
+  font-size: 0.85rem; font-weight: 600;
+  border: none; border-radius: 50px;
+  cursor: pointer;
   transition: 0.2s;
-  box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
-  white-space: nowrap;
-  flex-shrink: 0;
 }
-.share-btn:hover {
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 6px 20px rgba(29, 161, 242, 0.5);
-}
-.share-btn:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
-}
+.share-btn:hover { transform: scale(1.05); }
+.share-btn:active { transform: scale(0.95); }
 
-/* === Resource Bar === */
-.resource-bar {
+/* === メインレイアウト v3 === */
+.game-wrapper { max-width: 1920px; margin: 0 auto; }
+.main-layout-v3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  grid-template-columns: 280px 1fr 340px;
+  gap: 0;
+  background: var(--bg);
 }
-.resource-box {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid #2a2a4a;
-  transition: 0.2s;
+.pane {
+  border-right: 1px solid var(--pane-border);
+  display: flex; flex-direction: column;
+  height: calc(100vh - 48px - 40px);
 }
-.resource-box.highlight {
-  background: var(--panel-main);
-  border-color: var(--accent);
-  box-shadow: 0 0 15px rgba(255, 107, 107, 0.1);
-}
-.resource-icon {
-  font-size: 2.2rem;
-}
-.resource-name {
-  font-size: 0.8rem;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.resource-value {
-  font-size: 1.6rem;
-  font-weight: 700;
-}
-.resource-rate {
-  font-size: 0.75rem;
-  color: var(--info);
-  font-weight: 500;
+.pane:last-child { border-right: none; }
+
+/* === 左ペイン === */
+.pane-left {
+  background: var(--bg2);
 }
 
-/* === Main Layout === */
-.main-layout {
-  display: grid;
-  grid-template-columns: 1fr 1.3fr 1fr;
-  grid-auto-rows: 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
+/* リソース表示 */
+.resource-display {
+  display: flex; flex-direction: column;
+  gap: 1px;
+  background: var(--pane-border);
 }
-
-.panel {
-  background: var(--panel);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid #2a2a4a;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.panel h2 {
-  font-size: 1.2rem;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #2a2a4a;
-}
-.panel-desc {
-  font-size: 0.85rem;
-  color: var(--text2);
-}
-
-.panel-sea h2 { color: var(--info); }
-.panel-main h2 { color: var(--accent); }
-.panel-shop h2 { color: var(--success); }
-
-/* === Buttons === */
-.action-btn {
-  width: 100%;
-  padding: 14px 16px;
-  background: var(--btn);
-  border: 1px solid #3d4f7a;
-  border-radius: 12px;
-  color: var(--text);
+.resource-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: var(--pane);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: 0.2s;
-  text-align: left;
-}
-.action-btn:hover:not(:disabled) {
-  background: var(--btn-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-.action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.btn-icon { font-size: 1.6rem; }
-.btn-label { font-weight: 600; font-size: 1rem; flex: 1; }
-.btn-hint { font-size: 0.75rem; color: var(--text2); }
-
-.big-btn {
-  width: 100%;
-  padding: 30px 24px;
-  background: linear-gradient(135deg, var(--accent), #e84a4a);
-  cursor: pointer;
-  border: none;
-  border-radius: 16px;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
   transition: 0.15s;
-  box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.big-btn:hover:not(:disabled) {
-  transform: scale(1.03);
-  box-shadow: 0 6px 30px rgba(255, 107, 107, 0.5);
-}
-.big-btn:active:not(:disabled) {
-  transform: scale(0.97);
-}
-.big-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.big-icon { font-size: 3rem; }
-.big-label { font-size: 1.3rem; font-weight: 700; }
-.big-hint { font-size: 0.8rem; opacity: 0.85; }
+.resource-item:hover { filter: brightness(1.1); }
+.resource-item:active { transform: scale(0.98); }
+.res-icon { font-size: 1.6rem; }
+.res-info { flex: 1; }
+.res-name { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+.res-value { font-size: 1.2rem; font-weight: 700; }
+.res-rate { font-size: 0.65rem; color: var(--text3); }
 
-.sub-actions {
-  display: flex;
-  gap: 10px;
+.fish-res .res-value { color: var(--fish); }
+.mentai-res .res-value { color: var(--mentai); }
+.money-res .res-value { color: var(--money); }
+
+/* クリッカーエリア */
+.clicker-area {
+  display: flex; flex-direction: column;
+  gap: 1px;
+  padding: 1px;
+  flex-shrink: 0;
+  background: var(--pane-border);
 }
-.sub-actions .action-btn {
+.clicker-zone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 16px 8px;
+  background: var(--pane);
+  cursor: pointer;
+  transition: 0.15s;
+  position: relative; overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.clicker-zone:hover { filter: brightness(1.15); }
+.clicker-zone:active { transform: scale(0.97); }
+.clicker-icon { font-size: 2rem; margin-bottom: 4px; transition: 0.3s; }
+.clicker-zone:hover .clicker-icon { transform: scale(1.15); }
+.clicker-label { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.clicker-hint { font-size: 0.65rem; color: var(--text3); margin-top: 2px; }
+
+.fish-zone { border-left: 3px solid var(--fish); }
+.make-zone { border-left: 3px solid var(--mentai); }
+.sell-zone { border-left: 3px solid var(--money); }
+
+/* コンパクトログ */
+.log-area-compact {
   flex: 1;
-}
-
-/* === Upgrades === */
-.upgrades {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
+  padding: 12px;
   min-height: 0;
 }
-.upgrades h3 {
-  font-size: 0.9rem;
-  color: var(--text2);
-  margin: 6px 0;
-  font-weight: 600;
+.log-title { font-size: 0.7rem; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
+.log-content {
+  font-size: 0.72rem; color: var(--text2);
+  overflow-y: auto;
+  line-height: 1.5;
+  flex: 1;
 }
-.upgrade-list {
+.log-content p { margin: 2px 0; animation: fadeIn 0.3s ease; }
+.log-content .log-time { color: var(--text3); font-size: 0.6rem; }
+.log-content .log-sea { color: var(--fish); }
+.log-content .log-craft { color: var(--mentai); }
+.log-content .log-sell { color: var(--money); }
+
+/* === 中央ペイン === */
+.pane-center {
+  background: var(--bg);
+  align-items: center; justify-content: flex-start;
+}
+.sim-header {
+  width: 100%; padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--pane-border);
+  background: var(--bg2);
+}
+.sim-title { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+.sim-status { font-size: 0.7rem; color: var(--text3); transition: 0.3s; }
+.sim-status.active { color: var(--accent); }
+
+.sim-canvas-wrap {
+  flex: 1; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  min-height: 200px;
+}
+#sim-canvas {
+  width: 100%; height: 100%;
+  display: block;
+}
+
+.sim-legend {
+  width: 100%; padding: 10px 16px;
+  display: flex; gap: 16px; justify-content: center;
+  border-top: 1px solid var(--pane-border);
+  background: var(--bg2);
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.7rem; color: var(--text2);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* === 右ペイン === */
+.pane-right {
+  background: var(--bg2);
+}
+.shop-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--pane-border);
+  background: var(--pane);
+}
+.shop-header h2 { font-size: 0.95rem; color: var(--text); }
+.shop-money {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.9rem; font-weight: 700; color: var(--money);
+}
+
+/* ショップタブ */
+.shop-tabs {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex-grow: 1;
+  border-bottom: 1px solid var(--pane-border);
+  background: var(--bg);
+}
+.shop-tab {
+  flex: 1;
+  padding: 10px 4px;
+  background: none; border: none;
+  color: var(--text2); font-size: 0.75rem;
+  cursor: pointer;
+  transition: 0.15s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.shop-tab:hover { color: var(--text); }
+.shop-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: rgba(255,107,107,0.08);
+}
+
+/* ショップコンテンツ */
+.shop-content {
+  flex: 1;
   overflow-y: auto;
   min-height: 0;
+  position: relative;
 }
+.shop-panel {
+  display: none; padding: 8px;
+  gap: 6px; flex-direction: column;
+}
+.shop-panel.active { display: flex; }
+
+/* ショップアイテム */
 .upgrade-item {
-  background: #0f1620;
-  border: 1px solid #2a2a4a;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: var(--pane);
+  border: 1px solid var(--pane-border);
   border-radius: 10px;
-  padding: 10px 14px;
   cursor: pointer;
-  transition: 0.2s;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  transition: 0.15s;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.upgrade-item:hover:not(.disabled) {
+.upgrade-item:hover:not(.disabled):not(.maxed) {
   border-color: var(--accent);
-  background: #1a2333;
+  background: #1e2138;
+  transform: translateX(4px);
 }
 .upgrade-item.disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 .upgrade-item.maxed {
-  border-color: var(--accent2);
-  opacity: 0.6;
+  border-color: var(--maxed);
+  opacity: 0.5;
   cursor: default;
 }
-.upgrade-left { display: flex; flex-direction: column; gap: 2px; }
-.upgrade-name { font-weight: 600; font-size: 0.9rem; }
-.upgrade-desc { font-size: 0.75rem; color: var(--text2); }
-.upgrade-right { text-align: right; }
-.upgrade-cost { font-size: 0.85rem; color: var(--accent2); font-weight: 600; }
-.upgrade-level { font-size: 0.75rem; color: var(--text2); }
+.upgrade-left { flex: 1; min-width: 0; }
+.upgrade-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.upgrade-desc { font-size: 0.68rem; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.upgrade-right { flex-shrink: 0; text-align: right; }
+.upgrade-cost { font-size: 0.78rem; color: var(--money); font-weight: 700; }
+.upgrade-level { font-size: 0.65rem; color: var(--text3); }
 
-/* === Log === */
-.log-area {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 16px 20px;
-  max-height: 160px;
-  overflow: hidden;
-}
-.log-title {
-  font-size: 0.85rem;
+/* === フロートテキスト === */
+.float-text {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: var(--accent2);
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #2a2a4a;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6), 0 0 10px rgba(0,0,0,0.4);
+  animation: floatUp 0.9s ease-out forwards;
+  white-space: nowrap;
+  user-select: none;
 }
-.log-content {
-  font-size: 0.82rem;
-  color: var(--text2);
-  overflow-y: auto;
-  max-height: 100px;
-  line-height: 1.6;
+.float-text.fish   { color: var(--fish); }
+.float-text.mentai { color: var(--mentai); }
+.float-text.money  { color: var(--money); }
+.float-text.upgrade { color: var(--maxed); }
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  20%  { transform: translate(-50%, -10px) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -60px) scale(0.9); }
 }
-.log-content p {
-  margin: 2px 0;
-  animation: fadeIn 0.3s ease;
-}
-.log-content .log-time { color: #666; font-size: 0.7rem; }
-.log-content .log-sea { color: var(--info); }
-.log-content .log-craft { color: var(--accent); }
-.log-content .log-sell { color: var(--success); }
 
+/* === 波紋エフェクト === */
+@keyframes rippleAnim {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+}
+.click-effect {
+  position: absolute; top: 50%; left: 50%;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: rippleAnim 0.5s ease-out forwards;
+  z-index: 1;
+}
+
+/* === フッター === */
+.footer {
+  text-align: center; padding: 10px;
+  font-size: 0.7rem; color: var(--text3);
+  border-top: 1px solid var(--pane-border);
+}
+
+/* === スクロールバー === */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3d3f5c; border-radius: 3px; }
+
+/* === アニメーション === */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* === Footer === */
-.footer {
-  text-align: center;
-  padding: 16px 0;
-  font-size: 0.75rem;
-  color: #555;
-  border-top: 1px solid #2a2a4a;
-  margin-top: 10px;
-}
-
-/* === Scrollbar === */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #3d4f7a; border-radius: 3px; }
-
-/* === Responsive (タブレット) === */
+/* ============================
+   === レスポンシブ (タブレット) ===
+   ============================ */
 @media (max-width: 1024px) {
-  .main-layout {
+  .main-layout-v3 {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 300px auto;
   }
-  .big-btn { padding: 24px; }
-  .resource-bar {
-    grid-template-columns: 1fr;
-  }
+  .pane { height: auto; min-height: 200px; border-right: none; border-bottom: 1px solid var(--pane-border); }
+  .pane:last-child { border-bottom: none; }
+  .sim-canvas-wrap { min-height: 300px; }
 }
 
-/* 隠しボタン */
-#btn-make,
-#btn-sell,
-#btn-fish,
-#btn-shop {
-  display: none;
+/* ============================
+   === レスポンシブ (スマホ) ===
+   ============================ */
+@media (max-width: 480px) {
+  .header h1 { font-size: 1.1rem; }
+  .header h1 .version { font-size: 0.6rem; padding: 1px 5px; }
+  .subtitle { display: none; }
+  .share-btn { padding: 6px 12px; font-size: 0.75rem; }
+
+  .main-layout-v3 { grid-template-rows: auto 200px auto; }
+  .sim-canvas-wrap { min-height: 200px; }
+
+  .shop-header h2 { font-size: 0.85rem; }
+  .shop-tab { font-size: 0.7rem; padding: 8px 2px; }
+  .upgrade-item { padding: 8px 10px; }
+  .upgrade-name { font-size: 0.75rem; }
+  .upgrade-desc { font-size: 0.62rem; }
+  .upgrade-cost { font-size: 0.72rem; }
+
+  .clicker-zone { padding: 12px 8px; }
+  .clicker-icon { font-size: 1.6rem; }
+  .clicker-label { font-size: 0.7rem; }
+  .clicker-hint { font-size: 0.6rem; }
+
+  .resource-item { padding: 10px 12px; }
+  .res-icon { font-size: 1.3rem; }
+  .res-value { font-size: 1rem; }
+  .res-rate { font-size: 0.6rem; }
+
+  .sim-legend { gap: 8px; padding: 8px; }
+  .legend-item { font-size: 0.6rem; }
 }
 
-/* めんたいこクリックエリア */
-.mentai-clickable {
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: 0.15s;
-}
-.mentai-clickable:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 15px rgba(255, 107, 129, 0.15);
-}
-.mentai-clickable:active {
-  transform: scale(0.97);
-}
-
-/* 売上クリックエリア */
-.money-clickable {
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: 0.15s;
-}
-.money-clickable:hover {
-  border-color: var(--success);
-  box-shadow: 0 0 15px rgba(0, 230, 118, 0.15);
-}
-.money-clickable:active {
-  transform: scale(0.97);
-}
-
-/* めんたいこ波紋エフェクト */
-@keyframes mentaiRipple {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-.mentai-click-effect {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(255, 107, 129, 0.3);
-  transform: translate(-50%, -50%) scale(1);
-  pointer-events: none;
-  animation: mentaiRipple 0.5s ease-out forwards;
-}
-
-/* 売上波紋エフェクト */
-@keyframes moneyRipple {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-.money-click-effect {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(0, 230, 118, 0.3);
-  transform: translate(-50%, -50%) scale(1);
-  pointer-events: none;
-  animation: moneyRipple 0.5s ease-out forwards;
-}
-
-/* === スマホ専用タブバー === */
-
-/* 魚卵クリックエリア */
-.fish-clickable {
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: 0.15s;
-  border: 1px solid #2a2a4a;
-}
-.fish-clickable:hover {
-  border-color: var(--info);
-  box-shadow: 0 0 15px rgba(77, 150, 255, 0.2);
-}
-.fish-clickable:active {
-  transform: scale(0.97);
-}
-.fish-clickable .tap-hint {
-  font-size: 0.7rem;
-  color: var(--info);
-  margin-left: 6px;
-  opacity: 0.8;
-}
-
-/* 魚卵クリック時の波紋エフェクト */
-@keyframes fishRipple {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-.fish-click-effect {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(77, 150, 255, 0.3);
-  transform: translate(-50%, -50%) scale(1);
-  pointer-events: none;
-  animation: fishRipple 0.5s ease-out forwards;
-}
-.tab-bar {
-  display: none;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 8px;
-  gap: 6px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-}
-.tab-btn {
-  flex: 1;
-  padding: 12px 8px;
-  background: #0f1620;
-  border: 1px solid #2a2a4a;
-  border-radius: 10px;
-  color: var(--text2);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-  text-align: center;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.tab-btn.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-  box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
-}
-
-/* === タッチフィードバック === */
-.action-btn, .big-btn, .upgrade-item, .tab-btn {
-  -webkit-tap-highlight-color: rgba(255, 107, 107, 0.2);
-}
-.action-btn:active:not(:disabled), .upgrade-item:active:not(.disabled):not(.maxed) {
-  transform: scale(0.97);
-  opacity: 0.8;
-}
-.big-btn:active:not(:disabled) {
-  transform: scale(0.95) !important;
-}
-
-/* === Responsive (スマホ: 768px以下) === */
-@media (max-width: 768px) {
-  .game-wrapper { padding: 8px; }
-  .header { padding: 12px 0; }
-  .header h1 { font-size: 1.5rem; }
-  .subtitle { font-size: 0.8rem; }
-  .share-btn {
-    padding: 8px 14px;
-    font-size: 0.8rem;
-    gap: 4px;
-  }
-  .share-btn .share-text { display: none; }
-
-  .resource-bar {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .resource-box {
-    padding: 10px 8px;
-    flex-direction: column;
-    gap: 4px;
-    text-align: center;
-  }
-  .resource-box.fish-clickable {
-    border-color: var(--info);
-    background: linear-gradient(135deg, var(--panel), #1a2a4a);
-  }
-  .resource-box.fish-clickable:active {
-    background: linear-gradient(135deg, #1a2a4a, #0f1a2e);
-    transform: scale(0.96);
-  }
-  .resource-box.mentai-clickable {
-    border-color: var(--accent);
-    background: linear-gradient(135deg, var(--panel), #2d1a1a);
-  }
-  .resource-box.mentai-clickable:active {
-    background: linear-gradient(135deg, #2d1a1a, #1a0f0f);
-    transform: scale(0.96);
-  }
-  .resource-box.money-clickable {
-    border-color: var(--success);
-    background: linear-gradient(135deg, var(--panel), #0f2d1a);
-  }
-  .resource-box.money-clickable:active {
-    background: linear-gradient(135deg, #0f2d1a, #0a1a0d);
-    transform: scale(0.96);
-  }
-  .tap-hint {
-    display: block;
-    font-size: 0.6rem;
-    margin-top: 2px;
-    margin-left: 0;
-  }
-  .resource-icon { font-size: 1.5rem; }
-  .resource-name { font-size: 0.65rem; }
-  .resource-value { font-size: 1.1rem; }
-  .resource-rate { font-size: 0.65rem; }
-
-  /* タブバー表示 */
-  .tab-bar { display: flex; }
-
-  .main-layout {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-  .panel {
-    padding: 14px;
-    gap: 10px;
-    display: none;
-  }
-  .panel.active {
-    display: flex;
-  }
-
-  .panel h2 { font-size: 1rem; padding-bottom: 6px; }
-  .panel-desc { font-size: 0.78rem; }
-
-  .big-btn { padding: 24px 18px; }
-  .big-icon { font-size: 2.2rem; }
-  .big-label { font-size: 1.05rem; }
-  .big-hint { font-size: 0.75rem; }
-
-  .action-btn { padding: 12px 14px; gap: 10px; }
-  .btn-icon { font-size: 1.4rem; }
-  .btn-label { font-size: 0.9rem; }
-  .btn-hint { font-size: 0.7rem; }
-
-  .sub-actions .action-btn {
-    padding: 16px 12px;
-    flex-direction: column;
-    gap: 4px;
-    text-align: center;
-  }
-
-  .upgrade-item { padding: 10px 12px; }
-  .upgrade-name { font-size: 0.85rem; }
-  .upgrade-desc { font-size: 0.7rem; }
-  .upgrade-cost { font-size: 0.78rem; }
-  .upgrade-level { font-size: 0.7rem; }
-
-  .log-area { padding: 12px 14px; max-height: 140px; }
-  .log-content { max-height: 90px; font-size: 0.78rem; }
-
-  .footer { font-size: 0.7rem; padding: 12px 0; }
-}
-
-/* === さらに小さい画面 (400px以下) === */
-@media (max-width: 400px) {
-  .resource-bar {
-    grid-template-columns: 1fr;
-  }
-  .resource-box {
-    flex-direction: row;
-    text-align: left;
-    padding: 8px 12px;
-  }
-  .tab-btn {
-    padding: 10px 4px;
-    font-size: 0.75rem;
-  }
-}
+/* === 波紋カラー === */
+.fish-zone .click-effect { background: rgba(107,203,119,0.25); }
+.make-zone .click-effect { background: rgba(255,107,107,0.25); }
+.sell-zone .click-effect { background: rgba(255,217,61,0.25); }

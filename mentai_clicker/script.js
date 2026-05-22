@@ -804,12 +804,17 @@ const game = {
     if (infinityLv > 0) this.autoSellRate *= Math.pow(3, infinityLv);
   },
 
-  actionFish() {
+  actionFish(e) {
     const amount = this.clickFishAmount;
     this.roe += amount;
     this.pulseRes('roe');
     this.addLog(`🐟 魚卵を${amount}個GET！`, 'sea');
     this.updateUI();
+
+    // フロートテキスト
+    if (e && e.clientX) {
+      this.showFloatText(e.clientX, e.clientY - 20, `+${amount}🐟`, 'fish');
+    }
 
     // 波紋エフェクト
     const box = document.querySelector('.fish-clickable');
@@ -821,7 +826,7 @@ const game = {
     }
   },
 
-  actionMake() {
+  actionMake(e) {
     const cost = this.makeCostRoe * this.clickMakeAmount;
     if (this.roe < cost) {
       this.pulseBtn('btn-make', true);
@@ -838,6 +843,11 @@ const game = {
     }
     this.updateUI();
 
+    // フロートテキスト
+    if (e && e.clientX) {
+      this.showFloatText(e.clientX, e.clientY - 20, `+${this.clickMakeAmount}🔴`, 'mentai');
+    }
+
     // 波紋エフェクト
     const box = document.querySelector('.mentai-clickable');
     if (box) {
@@ -848,7 +858,7 @@ const game = {
     }
   },
 
-  actionSell() {
+  actionSell(e) {
     if (this.mentai < 1) {
       this.pulseBtn('btn-sell', true);
       this.pulseBtn('btn-shop', true);
@@ -864,6 +874,11 @@ const game = {
       this.addLog(`💰 「うまい！」と評判！ +${price}円`, 'sell');
     }
     this.updateUI();
+
+    // フロートテキスト
+    if (e && e.clientX) {
+      this.showFloatText(e.clientX, e.clientY - 20, `+${price}💰`, 'money');
+    }
 
     // 波紋エフェクト
     const box = document.querySelector('.money-clickable');
@@ -1022,6 +1037,16 @@ const game = {
   },
 
   // ---- UI ----
+  showFloatText(x, y, text, type) {
+    const el = document.createElement('div');
+    el.className = 'float-text ' + (type || '');
+    el.textContent = text;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+  },
+
   fmt(n) {
     if (n >= 1e15) return (n/1e15).toFixed(1) + 'Q';
     if (n >= 1e12) return (n/1e12).toFixed(1) + 'T';

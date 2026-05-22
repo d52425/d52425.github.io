@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>めんたい工房 🍣 〜しゃりの海老式経営〜</title>
+  <title>めんたい工房 v3 🍣 〜しゃりの海老式経営〜</title>
 
   <!-- OGP / Twitter Card -->
-  <meta property="og:title" content="めんたい工房 🍣 〜しゃりの海老式経営〜">
+  <meta property="og:title" content="めんたい工房 v3 🍣 〜しゃりの海老式経営〜">
   <meta property="og:description" content="魚卵を獲って、漬けて、売る！ぷりぷり海老のカジュアル放置クリッカーゲーム🦐">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://d52425.github.io/mentai_clicker/">
@@ -14,7 +14,7 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="めんたい工房 🍣 〜しゃりの海老式経営〜">
+  <meta name="twitter:title" content="めんたい工房 v3 🍣 〜しゃりの海老式経営〜">
   <meta name="twitter:description" content="魚卵を獲って、漬けて、売る！ぷりぷり海老のカジュアル放置クリッカーゲーム🦐">
   <meta name="twitter:image" content="https://d52425.github.io/mentai_clicker/ogp.png">
 
@@ -24,7 +24,7 @@
   <div class="game-wrapper">
     <header class="header">
       <div class="header-left">
-        <h1>🍣 めんたい工房</h1>
+        <h1>🍣 めんたい工房 <span class="version">v3</span></h1>
         <p class="subtitle">〜しゃりの海老式めんたい経営〜</p>
       </div>
       <button class="share-btn" type="button" aria-label="Xでシェア" onclick="shareOnX(event)">
@@ -32,106 +32,96 @@
       </button>
     </header>
 
-    <div class="resource-bar">
-      <div class="resource-box fish-clickable" onclick="game.actionFish()">
-        <div class="resource-icon">🐟</div>
-        <div class="resource-info">
-          <div class="resource-name">魚卵（原料）<span class="tap-hint">👆 タップ！</span></div>
-          <div class="resource-value" id="res-roe">0</div>
-          <div class="resource-rate" id="rate-roe">+0.0 /秒</div>
-        </div>
-      </div>
-      <div class="resource-box highlight mentai-clickable" onclick="game.actionMake()">
-        <div class="resource-icon">🍣</div>
-        <div class="resource-info">
-          <div class="resource-name">めんたいこ（製品）<span class="tap-hint">👆 漬ける</span></div>
-          <div class="resource-value" id="res-mentai">0</div>
-          <div class="resource-rate" id="rate-mentai">+0.0 /秒</div>
-        </div>
-      </div>
-      <div class="resource-box money-clickable" onclick="game.actionSell()">
-        <div class="resource-icon">💰</div>
-        <div class="resource-info">
-          <div class="resource-name">売上（資金）<span class="tap-hint">👆 販売</span></div>
-          <div class="resource-value" id="res-money">0</div>
-          <div class="resource-rate" id="rate-money">+0.0 /秒</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- スマホ用タブバー -->
-    <div class="tab-bar mobile-only">
-      <button class="tab-btn active" data-target="sea" onclick="game.switchTab('sea')">🌊 漁業</button>
-      <button class="tab-btn" data-target="craft" onclick="game.switchTab('craft')">🔴 製造</button>
-      <button class="tab-btn" data-target="shop" onclick="game.switchTab('shop')">🏪 販売</button>
-    </div>
-
-    <div class="main-layout">
-      <!-- 左：漁業ゾーン -->
-      <section class="panel panel-sea" data-tab="sea">
-        <h2>🌊 漁業ゾーン</h2>
-        <p class="panel-desc">上の魚卵をタップで漁に出るよ〜！</p>
-        
-        <button class="action-btn" id="btn-fish" onclick="game.actionFish()">
-          <span class="btn-icon">🎣</span>
-          <span class="btn-label">漁に出る</span>
-          <span class="btn-hint">魚卵 +1</span>
-        </button>
-
-        <div class="upgrades">
-          <h3>漁業アップグレード</h3>
-          <div class="upgrade-list" id="upg-fish"></div>
-        </div>
-      </section>
-
-      <!-- 中央：めんたい工房 -->
-      <section class="panel panel-main" data-tab="craft">
-        <h2>🔴 めんたい工房</h2>
-        <p class="panel-desc">上のめんたいこをタップで漬けるよ〜！</p>
-
-        <div class="main-action">
-          <button class="big-btn" id="btn-make" onclick="game.actionMake()">
-            <span class="big-icon">🍣</span>
-            <span class="big-label">めんたいを漬ける</span>
-            <span class="big-hint">魚卵 -1 → めんたいこ +1</span>
-          </button>
+    <div class="main-layout-v3">
+      <!-- 左: クリッカー・リソース・アクション -->
+      <section class="pane pane-left">
+        <div class="resource-display">
+          <div class="resource-item fish-res" onclick="game.actionFish(event)">
+            <span class="res-icon">🐟</span>
+            <div class="res-info">
+              <div class="res-name">魚卵</div>
+              <div class="res-value" id="res-roe">0</div>
+              <div class="res-rate" id="rate-roe">+0.0/s</div>
+            </div>
+          </div>
+          <div class="resource-item mentai-res" onclick="game.actionMake(event)">
+            <span class="res-icon">🔴</span>
+            <div class="res-info">
+              <div class="res-name">めんたい</div>
+              <div class="res-value" id="res-mentai">0</div>
+              <div class="res-rate" id="rate-mentai">+0.0/s</div>
+            </div>
+          </div>
+          <div class="resource-item money-res" onclick="game.actionSell(event)">
+            <span class="res-icon">💰</span>
+            <div class="res-info">
+              <div class="res-name">売上</div>
+              <div class="res-value" id="res-money">0</div>
+              <div class="res-rate" id="rate-money">+0.0/s</div>
+            </div>
+          </div>
         </div>
 
-        <div class="sub-actions">
-          <button class="action-btn" id="btn-sell" onclick="game.actionSell()">
-            <span class="btn-icon">🏪</span>
-            <span class="btn-label">販売する</span>
-            <span class="btn-hint">めんたいこ -1 → 💰 +<span id="sell-price">10</span></span>
-          </button>
+        <div class="clicker-area">
+          <div class="clicker-zone fish-zone" onclick="game.actionFish(event)" title="クリックで魚卵を獲得！">
+            <div class="clicker-icon">🌊</div>
+            <div class="clicker-label">漁に出る</div>
+            <div class="clicker-hint" id="click-hint-fish">🐟 +1</div>
+          </div>
+          <div class="clicker-zone make-zone" onclick="game.actionMake(event)" title="クリックでめんたいを漬ける！">
+            <div class="clicker-icon">🍣</div>
+            <div class="clicker-label">めんたいを漬ける</div>
+            <div class="clicker-hint" id="click-hint-make">魚卵 1 → 🔴 +1</div>
+          </div>
+          <div class="clicker-zone sell-zone" onclick="game.actionSell(event)" title="クリックでめんたいを売る！">
+            <div class="clicker-icon">🏪</div>
+            <div class="clicker-label">販売する</div>
+            <div class="clicker-hint" id="click-hint-sell">🔴 1 → 💰 +<span class="sell-price-static">10</span></div>
+          </div>
         </div>
 
-        <div class="upgrades">
-          <h3>工房＆販売アップグレード</h3>
-          <div class="upgrade-list" id="upg-make"></div>
+        <div class="log-area-compact">
+          <div class="log-title">📜 しゃりの経営日誌</div>
+          <div class="log-content" id="log-content"></div>
         </div>
       </section>
 
-      <!-- 右：販売ゾーン -->
-      <section class="panel panel-shop" data-tab="shop">
-        <h2>🏪 販売ゾーン</h2>
-        <p class="panel-desc">上の売上をタップでめんたいこを売るよ〜！</p>
-
-        <button class="action-btn" id="btn-shop" onclick="game.actionSell()">
-          <span class="btn-icon">🛒</span>
-          <span class="btn-label">店頭で売る</span>
-          <span class="btn-hint">めんたいこ -1 → 💰 +<span class="sell-price-static">10</span></span>
-        </button>
-
-        <div class="upgrades">
-          <h3>販売アップグレード</h3>
-          <div class="upgrade-list" id="upg-sell"></div>
+      <!-- 真ん中: パワーアップ反映シミュレーション -->
+      <section class="pane pane-center">
+        <div class="sim-header">
+          <span class="sim-title">🦐 めんたいパーティクル宇宙</span>
+          <span class="sim-status" id="sim-status">生産停止中...</span>
+        </div>
+        <div class="sim-canvas-wrap">
+          <canvas id="sim-canvas"></canvas>
+        </div>
+        <div class="sim-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#6bcb77"></span> 魚卵</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ff6b6b"></span> めんたい</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ffd93d"></span> 売上</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#4d96ff"></span> 自動生産</span>
         </div>
       </section>
-    </div>
 
-    <div class="log-area">
-      <div class="log-title">📜 しゃりの経営日誌</div>
-      <div class="log-content" id="log-content"></div>
+      <!-- 右: パワーアップショップ -->
+      <section class="pane pane-right">
+        <div class="shop-header">
+          <h2>⬆️ パワーアップ工房</h2>
+          <div class="shop-money">
+            <span>💰</span> <span id="shop-money">0</span>
+          </div>
+        </div>
+        <div class="shop-tabs">
+          <button class="shop-tab active" data-shop="fish" onclick="game.switchShop('fish')">🌊 漁業</button>
+          <button class="shop-tab" data-shop="make" onclick="game.switchShop('make')">🔴 製造</button>
+          <button class="shop-tab" data-shop="sell" onclick="game.switchShop('sell')">🏪 販売</button>
+        </div>
+        <div class="shop-content">
+          <div class="shop-panel active" data-shop="fish" id="upg-fish"></div>
+          <div class="shop-panel" data-shop="make" id="upg-make"></div>
+          <div class="shop-panel" data-shop="sell" id="upg-sell"></div>
+        </div>
+      </section>
     </div>
 
     <footer class="footer">
