@@ -1160,6 +1160,38 @@ const game = {
 
 // ---- 隠しコマンド入力システム ----
 let cheatBuffer = '';
+
+// ---- Xシェアボタン ----
+let shareOpening = false;
+function shareOnX(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  if (shareOpening) return;
+  shareOpening = true;
+
+  const url = 'https://d52425.github.io/mentai_clicker/';
+  const text = 'めんたい工房 🍣 〜しゃりの海老式めんたい経営〜\n魚卵を獲って、漬けて、売る！ぷりぷり海老のカジュアル放置クリッカーゲーム🦐';
+  const shareUrl = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
+
+  const w = 600, h = 450;
+  const left = (window.screen.width - w) / 2;
+  const top = (window.screen.height - h) / 2;
+  const win = window.open(
+    shareUrl,
+    'twitter-share',
+    'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',scrollbars=yes,resizable=yes'
+  );
+
+  // ポップアップがブロックされたらフォールバック
+  if (!win || win.closed || typeof win.closed === 'undefined') {
+    window.location.href = shareUrl;
+  }
+
+  setTimeout(function() { shareOpening = false; }, 2000);
+}
+
 const CHEAT_TIMEOUT = 2000;
 let cheatTimer = null;
 

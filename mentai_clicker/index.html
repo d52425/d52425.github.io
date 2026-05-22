@@ -10,9 +10,9 @@
   <meta property="og:description" content="魚卵を獲って、漬けて、売る！ぷりぷり海老のカジュアル放置クリッカーゲーム🦐">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://d52425.github.io/mentai_clicker/">
-  <meta property="og:image" content="https://d52425.github.io/mentai_clicker/ogp.png?v2">
-  <meta property="og:image:width" content="1424">
-  <meta property="og:image:height" content="752">
+  <meta property="og:image" content="https://d52425.github.io/mentai_clicker/ogp.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="めんたい工房 🍣 〜しゃりの海老式経営〜">
   <meta name="twitter:description" content="魚卵を獲って、漬けて、売る！ぷりぷり海老のカジュアル放置クリッカーゲーム🦐">
@@ -23,8 +23,13 @@
 <body>
   <div class="game-wrapper">
     <header class="header">
-      <h1>🍣 めんたい工房</h1>
-      <p class="subtitle">〜しゃりの海老式めんたい経営〜</p>
+      <div class="header-left">
+        <h1>🍣 めんたい工房</h1>
+        <p class="subtitle">〜しゃりの海老式めんたい経営〜</p>
+      </div>
+      <button class="share-btn" type="button" aria-label="Xでシェア" onclick="shareOnX(event)">
+        🐦 シェア
+      </button>
     </header>
 
     <div class="resource-bar">
@@ -135,5 +140,6 @@
   </div>
 
   <script src="script.js"></script>
+  <script src="visualizer.js"></script>
 </body>
 </html>

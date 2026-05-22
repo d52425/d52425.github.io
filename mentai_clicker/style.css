@@ -36,10 +36,16 @@ body {
 
 /* === Header === */
 .header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 20px 0;
   border-bottom: 2px solid var(--accent);
   margin-bottom: 16px;
+}
+.header-left {
+  text-align: center;
+  flex: 1;
 }
 .header h1 {
   font-size: 2.2rem;
@@ -50,6 +56,32 @@ body {
   color: var(--text2);
   margin-top: 4px;
   font-size: 0.95rem;
+}
+
+/* === Share Button === */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #1da1f2, #0d8ecf);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: 0.2s;
+  box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.share-btn:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 6px 20px rgba(29, 161, 242, 0.5);
+}
+.share-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
 }
 
 /* === Resource Bar === */
@@ -157,6 +189,7 @@ body {
   width: 100%;
   padding: 30px 24px;
   background: linear-gradient(135deg, var(--accent), #e84a4a);
+  cursor: pointer;
   border: none;
   border-radius: 16px;
   color: #fff;
@@ -474,6 +507,12 @@ body {
   .header { padding: 12px 0; }
   .header h1 { font-size: 1.5rem; }
   .subtitle { font-size: 0.8rem; }
+  .share-btn {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+  .share-btn .share-text { display: none; }
 
   .resource-bar {
     grid-template-columns: repeat(3, 1fr);
