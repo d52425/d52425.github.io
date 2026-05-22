@@ -14,26 +14,26 @@
     </header>
 
     <div class="resource-bar">
-      <div class="resource-box">
+      <div class="resource-box fish-clickable" onclick="game.actionFish()">
         <div class="resource-icon">🐟</div>
         <div class="resource-info">
-          <div class="resource-name">魚卵（原料）</div>
+          <div class="resource-name">魚卵（原料）<span class="tap-hint">👆 タップ！</span></div>
           <div class="resource-value" id="res-roe">0</div>
           <div class="resource-rate" id="rate-roe">+0.0 /秒</div>
         </div>
       </div>
-      <div class="resource-box highlight">
+      <div class="resource-box highlight mentai-clickable" onclick="game.actionMake()">
         <div class="resource-icon">🍣</div>
         <div class="resource-info">
-          <div class="resource-name">めんたいこ（製品）</div>
+          <div class="resource-name">めんたいこ（製品）<span class="tap-hint">👆 漬ける</span></div>
           <div class="resource-value" id="res-mentai">0</div>
           <div class="resource-rate" id="rate-mentai">+0.0 /秒</div>
         </div>
       </div>
-      <div class="resource-box">
+      <div class="resource-box money-clickable" onclick="game.actionSell()">
         <div class="resource-icon">💰</div>
         <div class="resource-info">
-          <div class="resource-name">売上（資金）</div>
+          <div class="resource-name">売上（資金）<span class="tap-hint">👆 販売</span></div>
           <div class="resource-value" id="res-money">0</div>
           <div class="resource-rate" id="rate-money">+0.0 /秒</div>
         </div>
@@ -51,7 +51,7 @@
       <!-- 左：漁業ゾーン -->
       <section class="panel panel-sea" data-tab="sea">
         <h2>🌊 漁業ゾーン</h2>
-        <p class="panel-desc">魚卵を確保するのだ〜！</p>
+        <p class="panel-desc">上の魚卵をタップで漁に出るよ〜！</p>
         
         <button class="action-btn" id="btn-fish" onclick="game.actionFish()">
           <span class="btn-icon">🎣</span>
@@ -68,7 +68,7 @@
       <!-- 中央：めんたい工房 -->
       <section class="panel panel-main" data-tab="craft">
         <h2>🔴 めんたい工房</h2>
-        <p class="panel-desc">魚卵を漬けて、極上のめんたいこに〜！</p>
+        <p class="panel-desc">上のめんたいこをタップで漬けるよ〜！</p>
 
         <div class="main-action">
           <button class="big-btn" id="btn-make" onclick="game.actionMake()">
@@ -95,7 +95,7 @@
       <!-- 右：販売ゾーン -->
       <section class="panel panel-shop" data-tab="shop">
         <h2>🏪 販売ゾーン</h2>
-        <p class="panel-desc">めんたいこを売りさばくよ〜！</p>
+        <p class="panel-desc">上の売上をタップでめんたいこを売るよ〜！</p>
 
         <button class="action-btn" id="btn-shop" onclick="game.actionSell()">
           <span class="btn-icon">🛒</span>

@@ -810,6 +810,15 @@ const game = {
     this.pulseRes('roe');
     this.addLog(`🐟 魚卵を${amount}個GET！`, 'sea');
     this.updateUI();
+
+    // 波紋エフェクト
+    const box = document.querySelector('.fish-clickable');
+    if (box) {
+      const ripple = document.createElement('div');
+      ripple.className = 'fish-click-effect';
+      box.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 500);
+    }
   },
 
   actionMake() {
@@ -828,6 +837,15 @@ const game = {
       this.addLog(`🔴 ぷりっと仕上がった！ +${this.clickMakeAmount}`, 'craft');
     }
     this.updateUI();
+
+    // 波紋エフェクト
+    const box = document.querySelector('.mentai-clickable');
+    if (box) {
+      const ripple = document.createElement('div');
+      ripple.className = 'mentai-click-effect';
+      box.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 500);
+    }
   },
 
   actionSell() {
@@ -846,6 +864,15 @@ const game = {
       this.addLog(`💰 「うまい！」と評判！ +${price}円`, 'sell');
     }
     this.updateUI();
+
+    // 波紋エフェクト
+    const box = document.querySelector('.money-clickable');
+    if (box) {
+      const ripple = document.createElement('div');
+      ripple.className = 'money-click-effect';
+      box.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 500);
+    }
   },
 
   buyUpgrade(key) {

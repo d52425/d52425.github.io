@@ -306,7 +306,121 @@ body {
   }
 }
 
+/* 隠しボタン */
+#btn-make,
+#btn-sell,
+#btn-fish,
+#btn-shop {
+  display: none;
+}
+
+/* めんたいこクリックエリア */
+.mentai-clickable {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: 0.15s;
+}
+.mentai-clickable:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(255, 107, 129, 0.15);
+}
+.mentai-clickable:active {
+  transform: scale(0.97);
+}
+
+/* 売上クリックエリア */
+.money-clickable {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: 0.15s;
+}
+.money-clickable:hover {
+  border-color: var(--success);
+  box-shadow: 0 0 15px rgba(0, 230, 118, 0.15);
+}
+.money-clickable:active {
+  transform: scale(0.97);
+}
+
+/* めんたいこ波紋エフェクト */
+@keyframes mentaiRipple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.mentai-click-effect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 107, 129, 0.3);
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: none;
+  animation: mentaiRipple 0.5s ease-out forwards;
+}
+
+/* 売上波紋エフェクト */
+@keyframes moneyRipple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.money-click-effect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(0, 230, 118, 0.3);
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: none;
+  animation: moneyRipple 0.5s ease-out forwards;
+}
+
 /* === スマホ専用タブバー === */
+
+/* 魚卵クリックエリア */
+.fish-clickable {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: 0.15s;
+  border: 1px solid #2a2a4a;
+}
+.fish-clickable:hover {
+  border-color: var(--info);
+  box-shadow: 0 0 15px rgba(77, 150, 255, 0.2);
+}
+.fish-clickable:active {
+  transform: scale(0.97);
+}
+.fish-clickable .tap-hint {
+  font-size: 0.7rem;
+  color: var(--info);
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+/* 魚卵クリック時の波紋エフェクト */
+@keyframes fishRipple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.fish-click-effect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(77, 150, 255, 0.3);
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: none;
+  animation: fishRipple 0.5s ease-out forwards;
+}
 .tab-bar {
   display: none;
   position: sticky;
@@ -371,6 +485,36 @@ body {
     flex-direction: column;
     gap: 4px;
     text-align: center;
+  }
+  .resource-box.fish-clickable {
+    border-color: var(--info);
+    background: linear-gradient(135deg, var(--panel), #1a2a4a);
+  }
+  .resource-box.fish-clickable:active {
+    background: linear-gradient(135deg, #1a2a4a, #0f1a2e);
+    transform: scale(0.96);
+  }
+  .resource-box.mentai-clickable {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, var(--panel), #2d1a1a);
+  }
+  .resource-box.mentai-clickable:active {
+    background: linear-gradient(135deg, #2d1a1a, #1a0f0f);
+    transform: scale(0.96);
+  }
+  .resource-box.money-clickable {
+    border-color: var(--success);
+    background: linear-gradient(135deg, var(--panel), #0f2d1a);
+  }
+  .resource-box.money-clickable:active {
+    background: linear-gradient(135deg, #0f2d1a, #0a1a0d);
+    transform: scale(0.96);
+  }
+  .tap-hint {
+    display: block;
+    font-size: 0.6rem;
+    margin-top: 2px;
+    margin-left: 0;
   }
   .resource-icon { font-size: 1.5rem; }
   .resource-name { font-size: 0.65rem; }
