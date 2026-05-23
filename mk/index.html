@@ -758,27 +758,45 @@ function updateHook(hookObj, hookXs, st, dropSpd, reelSpd, abObj) {
   let useDirect = !hookObj.setState;
   let setState = useDirect ? (s=> hookObj.state=s) : (s=> hookObj.setState(s));
   let setY = useDirect ? (y=> hookObj.y=y) : (y=> hookObj.setY(y));
-  for (let hx of hookXs) {
+  let caughtList = abObj ? abObj.caughtFishList : hookObj.caughtFishList;
+  if (!caughtList) {
+    caughtList = [];
+    if (abObj) abObj.caughtFishList = caughtList;
+    else hookObj.caughtFishList = caughtList;
+  }
+  for (let hi = 0; hi < hookXs.length; hi++) {
+    let hx = hookXs[hi];
     let hy = hookObj.y;
-    let caught = abObj ? abObj.caughtFish : hookObj.caughtFish;
+    let caught = caughtList[hi];
     if (hookObj.state==='drop') { hy += dropSpd; if (hy>=hookMaxDepth) setState('reel'); }
-    else if (hookObj.state==='reel') { hy -= reelSpd; if (hy<=70) { hy=70; setState('idle'); if(caught){
-          // 魚をストックに追加（直接MDには変換しない）
-          const fType = caught.type || caught.name;
+    else if (hookObj.state==='reel') { hy -= reelSpd; if (hy<=70) { hy=70; setState('idle');
+        // 着水時にすべての caughtFish を倉庫に入れる
+        for (let cf of caughtList) {
+          if (!cf) continue;
+          const fType = cf.type || cf.name;
           fishStock[fType] = (fishStock[fType]||0) + 1;
+          gameScore += Math.floor(cf.pts * st.scoreMult);
+        }
+        if (caughtList.length > 0) {
+          scoreBox.textContent = 'Score: ' + gameScore;
           saveData();
-          gameScore+=Math.floor(caught.pts*st.scoreMult); scoreBox.textContent='Score: '+gameScore;
-          if(abObj) abObj.caughtFish=null; else hookObj.caughtFish=null;
-        } } }
+        }
+        caughtList.length = 0;
+        if (abObj) abObj.caughtFish = null;
+        else hookObj.caughtFish = null;
+      } }
     setY(hy);
+    if (caught) continue; // この針は既に魚を持ってる
     for (let f of fishList) {
       if (!f.alive) continue;
-      if (caught) break;
       let dx = hx - f.x; let dy = (hy+35) - f.y;
       if (Math.hypot(dx,dy) < (f.r+10)*st.hookSize) {
         let cf = {name:f.name, pts:f.pts, type:f.type || f.name}; f.alive=false;
         setState('reel'); addParticles(f.x,f.y,f.color,10); addRipple(f.x,f.y);
-        if (abObj) abObj.caughtFish = cf; else hookObj.caughtFish = cf;
+        caughtList[hi] = cf;
+        // 後方互換: 代表で1匹も保持
+        if (abObj) abObj.caughtFish = cf;
+        else hookObj.caughtFish = cf;
         break;
       }
     }
