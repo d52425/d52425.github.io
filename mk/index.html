@@ -86,6 +86,19 @@ const timerBox = document.getElementById('timerBox');
 
 const SAVE_KEY = 'fishing_save_v3';
 
+// 魚スプライト
+const fishSpriteImg = new Image();
+fishSpriteImg.src = 'fish.png';
+const SPRITE_COLS = 5;
+const SPRITE_ROWS = 3;
+const SPRITE_W = 1334 / 5;
+const SPRITE_H = 800 / 3;
+const SPRITE_MAP = {
+  aji:    [0,0], iwashi: [1,0], ebi:   [2,0], kaki:  [3,0], hotate:  [4,0],
+  saba:   [0,1], ika:    [1,1], sanma: [2,1], kani:  [3,1], sawara:  [4,1],
+  maguro: [0,2], katsuo: [1,2], kinme: [2,2], sukedara:[3,2], kurage:  [4,2]
+};
+
 let totalPoints = 0;
 let ownedItems = [];  // 旧互換用
 let upgradeLevels = {}; // { ship_spd: 5, auto_man: 3, ... }
@@ -686,15 +699,20 @@ function draw() {
   autoBoats.forEach(ab=>{ drawBoat(ab.x, ab.hookY, ab.caughtFish, false, stDraw); });
   // fish
   fishList.forEach(f=>{
-    ctx.save(); ctx.translate(f.x,f.y); if (f.vx<0) ctx.scale(-1,1);
-    // body
-    ctx.fillStyle=f.color; ctx.beginPath(); ctx.ellipse(0,0,f.r*1.4,f.r,0,0,Math.PI*2); ctx.fill();
-    // tail
-    ctx.beginPath(); ctx.moveTo(-f.r*1.1,0); ctx.lineTo(-f.r*1.8,-f.r*0.6); ctx.lineTo(-f.r*1.8,f.r*0.6); ctx.closePath(); ctx.fill();
-    // eye
-    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(f.r*0.6,-f.r*0.2,3,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(f.r*0.7,-f.r*0.2,1.5,0,Math.PI*2); ctx.fill();
-    // points indicator
+    const sp = SPRITE_MAP[f.type];
+    if(!sp || !fishSpriteImg.complete) {
+      ctx.save(); ctx.translate(f.x,f.y); if(f.vx<0) ctx.scale(-1,1);
+      ctx.fillStyle=f.color; ctx.beginPath(); ctx.ellipse(0,0,f.r*1.4,f.r,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-f.r*1.1,0); ctx.lineTo(-f.r*1.8,-f.r*0.6); ctx.lineTo(-f.r*1.8,f.r*0.6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(f.r*0.6,-f.r*0.2,3,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(f.r*0.7,-f.r*0.2,1.5,0,Math.PI*2); ctx.fill();
+      ctx.restore(); return;
+    }
+    ctx.save(); ctx.translate(f.x,f.y); if(f.vx<0) ctx.scale(-1,1);
+    const sx=sp[0]*SPRITE_W, sy=sp[1]*SPRITE_H;
+    const s=(f.r*2.6)/Math.min(SPRITE_W,SPRITE_H);
+    const dw=SPRITE_W*s, dh=SPRITE_H*s;
+    ctx.drawImage(fishSpriteImg, sx, sy, SPRITE_W, SPRITE_H, -dw/2, -dh/2, dw, dh);
     ctx.restore();
   });
   // particles
