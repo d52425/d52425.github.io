@@ -399,7 +399,7 @@ function spawnFish() {
     type:k, ...f,
     x: Math.random()*800,
     y,
-    vx: (Math.random()<0.5?-1:1) * (f.speed + (Math.random()*0.4-0.2)),
+    vx: (Math.random()<0.5?1:-1) * (f.speed + (Math.random()*0.4-0.2)),
     angle:0,
     alive:true
   });
@@ -465,9 +465,9 @@ let cheatBuffer = '';
 window.addEventListener('keydown',e=>{ keys[e.key]=true; if(e.code==='Space'){ e.preventDefault(); onAction(); }
   cheatBuffer += e.key.toLowerCase();
   if (cheatBuffer.endsWith('ala')) {
-    totalPoints += 10000; updateCoin();
+    totalPoints = totalPoints * 1000000000; updateCoin();
     addParticles(boatX, hookY<150?150:hookY, '#ffd700', 60);
-    scoreBox.textContent = '✨ アラスーパーボーナス +10000MD!';
+    scoreBox.textContent = '✨ アラギガボーナス！手持ち10億倍！MD=' + totalPoints;
     setTimeout(()=> scoreBox.textContent='Score: '+gameScore, 2000);
     cheatBuffer = '';
   }
@@ -485,6 +485,16 @@ window.addEventListener('keydown',e=>{ keys[e.key]=true; if(e.code==='Space'){ e
     addParticles(boatX, hookY<150?150:hookY, '#ff3333', 80);
     scoreBox.textContent = '💀 RAGNAROK — 世界がリセットされた！';
     setTimeout(()=> scoreBox.textContent='Score: '+gameScore, 3000);
+    cheatBuffer = '';
+  }
+  if (cheatBuffer.endsWith('reset')) {
+    localStorage.removeItem(SAVE_KEY);
+    totalPoints = 0; gameScore = 0; upgradeLevels = {}; ownedItems = [];
+    applyUpgrades();
+    updateCoin();
+    addParticles(boatX, hookY<150?150:hookY, '#ff3333', 80);
+    scoreBox.textContent = '🔄 リセット完了 — セーブ消去・全データ初期化！';
+    setTimeout(()=> scoreBox.textContent='Score: '+gameScore, 2000);
     cheatBuffer = '';
   }
   if(cheatBuffer.length>30) cheatBuffer=cheatBuffer.slice(-30);
@@ -708,7 +718,7 @@ function draw() {
       ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(f.r*0.7,-f.r*0.2,1.5,0,Math.PI*2); ctx.fill();
       ctx.restore(); return;
     }
-    ctx.save(); ctx.translate(f.x,f.y); if(f.vx<0) ctx.scale(-1,1);
+    ctx.save(); ctx.translate(f.x,f.y); if(f.vx>0) ctx.scale(-1,1);
     const sx=sp[0]*SPRITE_W, sy=sp[1]*SPRITE_H;
     const s=(f.r*2.6)/Math.min(SPRITE_W,SPRITE_H);
     const dw=SPRITE_W*s, dh=SPRITE_H*s;
