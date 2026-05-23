@@ -40,8 +40,8 @@
   const BOUNCE = 0.55;           // 床の反発係数
   const WALL_BOUNCE = 0.6;       // 壁の反発係数
   const FRICTION = 0.985;        // 空気抵抗・摩擦
-  const MAX_NORMAL = 40;         // 通常パーティクル数
-  const MAX_BURST = 25;          // バースト最大
+  const MAX_NORMAL = 8;          // 通常パーティクル数（軽量化のため大幅削減）
+  const MAX_BURST = 12;          // バースト最大（軽量化のため削減）
   const CONNECT_DIST_SQ = 100 * 100;
 
   let particles = [];
@@ -163,12 +163,14 @@
     trimParticles();
   }
 
-  function spawnNormal(x, y, count, type) {
+  function spawnNormal(x, y, count, type, sizeScale = 1) {
     for (let i = 0; i < count; i++) {
       const p = new Particle(x, y, type, false);
       // 若干ばらつきを持たせて自然に落下
       p.vx = (Math.random() - 0.5) * 1.5;
       p.vy = Math.random() * 0.5;
+      // 生産量に応じてサイズをスケール
+      p.size = p.size * sizeScale;
       particles.push(p);
     }
     trimParticles();
@@ -311,7 +313,7 @@
     else if (t.classList.contains('make-zone') || t.classList.contains('mentai-res')) type = 'mentai';
     else if (t.classList.contains('sell-zone') || t.classList.contains('money-res')) type = 'money';
 
-    spawnBurst(e.clientX, e.clientY, 4, type);
+    spawnBurst(e.clientX, e.clientY, 2, type);
     addRipple(e.clientX, e.clientY);
   });
 
