@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="めんたい工房">
+<meta property="og:description" content="沿岸・沖合・遠洋、3つの漁業形態で魚を釣ろう！ボート、中型船、大型船を買い進め、めんたいドルを稼ごう！">
+<meta property="og:type" content="website">
+<meta property="og:url" content="">
+<meta property="og:image" content="">
+<meta property="og:site_name" content="めんたい工房">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0a1e3c">
+<title>めんたい工房</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; background:#0a1e3c; overflow:hidden; font-family:'Segoe UI','Hiragino Maru Gothic ProN','Meiryo',sans-serif; }
+#gameWrap { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+#gameContainer { position:relative; width:800px; height:600px; box-shadow:0 0 40px rgba(0,180,255,0.35); border-radius:12px; overflow:hidden; background:#0b2a4a; }
+canvas { display:block; image-rendering:pixelated; }
+#hud { position:absolute; top:0; left:0; width:800px; height:600px; pointer-events:none; display:none; }
+#hud * { pointer-events:none; }
+#scoreBox, #timerBox { position:absolute; top:12px; padding:6px 14px; background:rgba(0,0,0,0.55); border-radius:20px; color:#fff; font-weight:900; font-size:18px; text-shadow:1px 1px 2px #000; }
+#scoreBox { left:14px; }
+#timerBox { right:14px; }
+#overlay { position:absolute; top:0; left:0; width:800px; height:600px; display:none; align-items:center; justify-content:center; background:rgba(4,18,40,0.88); z-index:10; }
+#overlayContent { text-align:center; color:#fff; max-width:600px; padding:20px; }
+#overlayContent h1 { font-size:36px; margin-bottom:10px; text-shadow:0 2px 8px #00b4ff; }
+#overlayContent h2 { font-size:22px; margin-bottom:8px; color:#ffe082; }
+#overlayContent p { font-size:18px; margin:6px 0; }
+#overlayContent .big { font-size:40px; font-weight:900; color:#4dd0e1; text-shadow:0 2px 6px #004d40; margin:10px 0; }
+#overlayContent .rank { font-size:48px; font-weight:900; margin:12px 0; }
+.btn { display:inline-block; margin:8px 6px; padding:12px 28px; font-size:18px; font-weight:900; border:none; border-radius:30px; cursor:pointer; transition:transform .15s, box-shadow .15s; pointer-events:auto; }
+.btn:hover { transform:translateY(-3px) scale(1.05); }
+.btn-primary { background:linear-gradient(180deg,#4dd0e1,#0097a7); color:#fff; box-shadow:0 4px 14px rgba(0,151,167,0.45); }
+.btn-shop { background:linear-gradient(180deg,#ffd54f,#ff8f00); color:#332200; box-shadow:0 4px 14px rgba(255,143,0,0.45); }
+.btn-x { background:linear-gradient(180deg,#1da1f2,#0d8ecf); color:#fff; box-shadow:0 4px 14px rgba(29,161,242,0.5); border:1px solid #4fc3f7; }
+#topBar { width:800px; display:flex; align-items:center; justify-content:space-between; padding:8px 16px; color:#fff; font-weight:900; font-size:18px; }
+#topBar .coin { font-size:22px; }
+#shopWrap { display:none; position:absolute; top:0; left:0; width:800px; height:600px; flex-direction:column; z-index:8; background:#0b2a4a; }
+#shopHeader { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:#0d3058; color:#fff; font-weight:900; font-size:20px; border-bottom:2px solid #1a4a7a; }
+#shopGrid { flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:14px 14px 40px; }
+.shopCard { background:#11355e; border-radius:10px; padding:12px; color:#fff; border:2px solid #1a4a7a; display:flex; flex-direction:column; align-items:center; text-align:center; transition:border-color .2s, background .2s; }
+.shopCard .name { font-weight:900; font-size:16px; margin-bottom:4px; }
+.shopCard .desc { font-size:13px; color:#b3e5fc; margin-bottom:8px; min-height:32px; }
+.shopCard .price { font-weight:900; font-size:18px; margin-bottom:8px; }
+.shopCard.canBuy { border-color:#4dd0e1; }
+.shopCard.cantBuy { border-color:#b71c1c; background:#1a0e0e; }
+.shopCard.bought { border-color:#4caf50; background:#0e2a12; opacity:0.8; }
+.shopCard .buyBtn { margin-top:auto; padding:6px 18px; font-size:14px; font-weight:900; border:none; border-radius:16px; cursor:pointer; }
+.shopCard.canBuy .buyBtn { background:#4dd0e1; color:#003c4a; }
+.shopCard.cantBuy .buyBtn { background:#616161; color:#ccc; cursor:not-allowed; }
+.shopCard.bought .buyBtn { background:#388e3c; color:#fff; cursor:default; }
+#backBtn { margin-left:14px; }
+</style>
+</head>
+<body>
+<div id="gameWrap">
+  <div id="topBar"><span>🎣 めんたい工房</span><span class="coin" id="topCoin">💰 0MD</span></div>
+  <div id="gameContainer">
+    <canvas id="cv" width="800" height="600"></canvas>
+    <div id="hud"><div id="scoreBox">Score: 0</div><div id="zoneBox" style="position:absolute;bottom:12px;left:14px;padding:4px 12px;background:rgba(0,0,0,0.45);border-radius:16px;color:#b3e5fc;font-weight:900;font-size:14px;">沿岸漁業</div><div id="timerBox">Time: 60</div></div>
+    <div id="overlay"><div id="overlayContent"></div></div>
+    <div id="shopWrap">
+      <div id="shopHeader"><span>🛒 工房ショップ</span><button class="btn btn-primary" id="backBtn" onclick="showTitle()">⬅ 戻る</button></div>
+      <div id="shopGrid"></div>
+    </div>
+  </div>
+</div>
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const hud = document.getElementById('hud');
+const overlay = document.getElementById('overlay');
+const overlayContent = document.getElementById('overlayContent');
+const shopWrap = document.getElementById('shopWrap');
+const shopGrid = document.getElementById('shopGrid');
+const topCoin = document.getElementById('topCoin');
+const scoreBox = document.getElementById('scoreBox');
+const timerBox = document.getElementById('timerBox');
+
+const SAVE_KEY = 'fishing_save_v2';
+
+let totalPoints = 0;
+let ownedItems = [];
+let fishStock = {};  // 各魚の種類ごとの在庫 { 'aji': 5, 'iwashi': 3, ... }
+let screen = 'title';
+let lastTime = 0;
+let gameTime = 60;
+let gameScore = 0;
+let timer = 0;
+let boatX = 400;
+let targetBoatX = 400;
+let hookState = 'idle'; // idle, drop, reel
+let hookY = 70;
+let hookMaxDepth = 500;
+let hookOffX = 0; // triple rod offset
+let autoBoats = []; // {x, targetX, hookState, hookY, caughtFish, timer}
+let caughtFish = null;
+let fishList = [];
+let particles = [];
+let bubbles = [];
+let ripples = [];
+let activeZone = 'coastal'; // 'coastal' | 'offshore' | 'pelagic'
+
+const FISH_TYPES = {
+  aji: { name:'アジ', pts:10, color:'#90caf9', r:10, speed:1.2, zone:'coastal' },
+  iwashi: { name:'イワシ', pts:15, color:'#81d4fa', r:9, speed:1.5, zone:'coastal' },
+  ebi: { name:'エビ', pts:30, color:'#ff7043', r:8, speed:1.0, zone:'coastal' },
+  kaki: { name:'カキ', pts:15, color:'#b0bec5', r:10, speed:0.8, zone:'coastal' },
+  hotate: { name:'ホタテ', pts:25, color:'#fff9c4', r:12, speed:0.5, zone:'coastal' },
+  saba: { name:'サバ', pts:20, color:'#4fc3f7', r:13, speed:0.9, zone:'offshore' },
+  ika: { name:'イカ', pts:35, color:'#ce93d8', r:14, speed:1.1, zone:'offshore' },
+  sanma: { name:'サンマ', pts:30, color:'#b39ddb', r:12, speed:1.0, zone:'offshore' },
+  kani: { name:'カニ', pts:25, color:'#ef5350', r:11, speed:0.7, zone:'offshore' },
+  sawara: { name:'サワラ', pts:40, color:'#80cbc4', r:15, speed:0.8, zone:'offshore' },
+  maguro: { name:'マグロ', pts:100, color:'#26a69a', r:22, speed:0.5, zone:'pelagic' },
+  katsuo: { name:'カツオ', pts:70, color:'#4dd0e1', r:18, speed:0.6, zone:'pelagic' },
+  kinme: { name:'キンメ', pts:80, color:'#ffca28', r:18, speed:0.6, zone:'pelagic' },
+  sukedara: { name:'スケトウダラ', pts:120, color:'#cddc39', r:17, speed:0.8, zone:'pelagic' },
+  kurage: { name:'クラゲ', pts:40, color:'#e1bee7', r:14, speed:0.4, zone:'pelagic' }
+};
+
+const UPGRADES = [
+  { id:'boat_base', name:'ボート', desc:'沿岸漁業が可能！アジ、イワシ、エビなどが獲れる。', price:0, req:[] },
+  { id:'boat_mid', name:'中型船', desc:'沖合漁業が可能！サバ、イカ、サンマ、カニなどが獲れる。', price:300, req:['boat_base'] },
+  { id:'boat_large', name:'大型船', desc:'遠洋漁業が可能！マグロ、カツオ、スケトウダラなどが獲れる。', price:800, req:['boat_mid'] },
+  { id:'ship_spd1', name:'船速UP I', desc:'船の移動速度が1.3倍！', price:100, req:[] },
+  { id:'ship_spd2', name:'船速UP II', desc:'船の移動速度が1.6倍！', price:250, req:['ship_spd1'] },
+  { id:'ship_sonar1', name:'魚群レーダー I', desc:'同時出現数が13匹に！', price:200, req:[] },
+  { id:'ship_sonar2', name:'魚群レーダー II', desc:'同時出現数が15匹に！', price:500, req:['ship_sonar1'] },
+  { id:'rod_fast1', name:'高速釣り I', desc:'釣り上げ速度が1.3倍！', price:150, req:[] },
+  { id:'rod_fast2', name:'高速釣り II', desc:'釣り上げ速度が1.8倍！', price:400, req:['rod_fast1'] },
+  { id:'rod_long1', name:'深海ロッド I', desc:'最大水深が550に！', price:200, req:[] },
+  { id:'rod_long2', name:'深海ロッド II', desc:'最大水深が650に！', price:600, req:['rod_long1'] },
+  { id:'rod_gold1', name:'ゴールド竿', desc:'スコアが1.5倍に！', price:300, req:[] },
+  { id:'auto_man1', name:'自動釣りマン I', desc:'ボートが増えて自動で釣り！', price:350, req:[] },
+  { id:'auto_man2', name:'自動釣りマン II', desc:'釣りマンが2隻に増殖！', price:700, req:['auto_man1'] },
+  { id:'triple_rod', name:'トリプル竿', desc:'釣り針が3本同時に！', price:450, req:[] },
+  { id:'big_hook', name:'でか釣り針', desc:'当たり判定2倍＆レア率UP', price:300, req:[] }
+];
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) { const d = JSON.parse(raw); totalPoints = d.totalPoints||0; ownedItems = d.items||[]; fishStock = d.fishStock||{}; }
+  } catch(e){}
+}
+function saveData() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify({totalPoints, items:ownedItems, fishStock}));
+}
+
+function getStats() {
+  let spdMult = 1.0, maxFish = 12, hookSpdMult = 1.0, depth = 500, scoreMult = 1.0;
+  let autoMen = 0, tripleRod = false, hookSize = 1.0, rareBonus = 0;
+  let boatLevel = 1;
+  if (ownedItems.includes('boat_base')) boatLevel = 1;
+  if (ownedItems.includes('boat_mid')) boatLevel = 2;
+  if (ownedItems.includes('boat_large')) boatLevel = 3;
+  if (ownedItems.includes('ship_spd1')) spdMult = 1.3;
+  if (ownedItems.includes('ship_spd2')) spdMult = 1.6;
+  if (ownedItems.includes('ship_sonar1')) maxFish = 13;
+  if (ownedItems.includes('ship_sonar2')) maxFish = 15;
+  if (ownedItems.includes('rod_fast1')) hookSpdMult = 1.3;
+  if (ownedItems.includes('rod_fast2')) hookSpdMult = 1.8;
+  if (ownedItems.includes('rod_long1')) depth = 550;
+  if (ownedItems.includes('rod_long2')) depth = 650;
+  if (ownedItems.includes('rod_gold1')) scoreMult = 1.5;
+  if (ownedItems.includes('auto_man1')) autoMen = 1;
+  if (ownedItems.includes('auto_man2')) autoMen = 2;
+  if (ownedItems.includes('triple_rod')) tripleRod = true;
+  if (ownedItems.includes('big_hook')) { hookSize = 2.0; rareBonus = 0.05; }
+  return { spdMult, maxFish, hookSpdMult, depth, scoreMult, autoMen, tripleRod, hookSize, rareBonus, boatLevel };
+}
+
+function updateCoin() { topCoin.textContent = '💰 ' + totalPoints + 'MD'; }
+
+function showTitle() {
+  screen = 'title'; overlay.style.display='flex'; shopWrap.style.display='none'; hud.style.display='none'; updateCoin();
+  const st = getStats();
+  let boatName = 'ボート';
+  if (st.boatLevel===1) boatName = 'ボート（沿岸）';
+  else if (st.boatLevel===2) boatName = '中型船（沖合）';
+  else if (st.boatLevel===3) boatName = '大型船（遠洋）';
+  overlayContent.innerHTML = `
+    <h1>🎣 めんたい工房</h1>
+    <p>漁船を選んで、海へ出港しよう！</p>
+    <div style="margin:14px 0; font-size:16px; color:#b3e5fc;">
+      ← → キー / マウスで船を移動<br>クリック or スペースで釣り！
+    </div>
+    <div class="big">💰 ${totalPoints}MD</div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-shop" onclick="showShop()">🛒 工房ショップ</button>
+      <button class="btn btn-x" onclick="shareX()">X シェア</button>
+      <br>
+      <button class="btn btn-primary" onclick="startGame('coastal')">🛶 沿岸漁業</button>
+      <button class="btn btn-primary" onclick="startGame('offshore')" ${st.boatLevel<2?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🚤 沖合漁業</button>
+      <button class="btn btn-primary" onclick="startGame('pelagic')" ${st.boatLevel<3?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🚢 遠洋漁業</button>
+      <br>
+      <button class="btn btn-process" onclick="showFactory()">🔧 加工</button>
+      <button class="btn btn-sell" onclick="showMarket()">🏪 販売</button>
+    </div>`;
+}
+
+function showShop() {
+  screen = 'shop'; overlay.style.display='none'; hud.style.display='none'; shopWrap.style.display='flex'; updateCoin();
+  buildShop();
+}
+function buildShop() {
+  shopGrid.innerHTML = '';
+  UPGRADES.forEach(u=>{
+    const owned = ownedItems.includes(u.id);
+    const canBuy = !owned && totalPoints >= u.price;
+    const reqsMet = u.req.every(r=>ownedItems.includes(r));
+    let cls = owned ? 'bought' : (canBuy && reqsMet ? 'canBuy' : 'cantBuy');
+    let btnTxt = owned ? '✅ 購入済' : (!reqsMet ? '🔒 未解放' : (canBuy ? '購入' : 'MD不足'));
+    const card = document.createElement('div');
+    card.className = 'shopCard ' + cls;
+    card.innerHTML = `
+      <div class="name">${u.name}</div>
+      <div class="desc">${u.desc}${u.req.length?'<br><small>必要: '+u.req.map(r=>UPGRADES.find(x=>x.id===r).name).join(', ')+'</small>':''}</div>
+      <div class="price">${u.price}MD</div>
+      <button class="buyBtn">${btnTxt}</button>`;
+    const btn = card.querySelector('.buyBtn');
+    btn.onclick = ()=>{ if(!owned && canBuy && reqsMet){ buyItem(u.id); } };
+    shopGrid.appendChild(card);
+  });
+}
+function buyItem(id) {
+  const u = UPGRADES.find(x=>x.id===id);
+  if (!u || ownedItems.includes(id) || totalPoints < u.price) return;
+  if (u.req.some(r=>!ownedItems.includes(r))) return;
+  totalPoints -= u.price; ownedItems.push(id); saveData(); updateCoin(); buildShop();
+}
+
+function startGame(zone='coastal') {
+  screen = 'game'; overlay.style.display='none'; shopWrap.style.display='none'; hud.style.display='block';
+  const st = getStats();
+  activeZone = zone;
+  gameTime = 60; gameScore = 0; timer = 0; boatX = 400; targetBoatX = 400;
+  const zoneBox = document.getElementById('zoneBox');
+  if (zoneBox) { zoneBox.textContent = zone==='coastal'?'沿岸漁業':zone==='offshore'?'沖合漁業':'遠洋漁業'; }
+  hookState = 'idle'; hookY = 70; hookOffX = st.tripleRod ? 30 : 0;
+  hookMaxDepth = st.depth; caughtFish = null;
+  autoBoats = [];
+  for (let i=0; i<st.autoMen; i++) {
+    let bx = (i+1) * (800/(st.autoMen+1));
+    autoBoats.push({ x:bx, targetX:bx, hookState:'idle', hookY:70, caughtFish:null, timer:0 });
+  }
+  fishList = []; particles = []; bubbles = []; ripples = [];
+  for (let i=0;i<st.maxFish;i++) spawnFish();
+  for (let i=0;i<20;i++) bubbles.push({x:Math.random()*800,y:Math.random()*500+120,r:Math.random()*3+1,spd:Math.random()*1+0.3});
+}
+
+function spawnFish() {
+  const st = getStats();
+  const zone = activeZone;
+  // ゾーンごとの魚のリスト
+  const pool = Object.entries(FISH_TYPES).filter(([k,v])=>v.zone===zone);
+  if (pool.length===0) return;
+  const [k, f] = pool[Math.floor(Math.random() * pool.length)];
+  const y = Math.random()*(580-120)+120;
+  fishList.push({
+    type:k, ...f,
+    x: Math.random()*800,
+    y,
+    vx: (Math.random()<0.5?-1:1) * (f.speed + (Math.random()*0.4-0.2)),
+    angle:0,
+    alive:true
+  });
+}
+
+function shareX(score, rank) {
+  let text;
+  if (score != null && rank != null) {
+    text = `めんたい工房で ${score}MD 獲得！ランク：${rank}\n🎣 あなたも釣りに来ない？`;
+  } else {
+    text = `🎣 めんたい工房で漁業体験しよう！沿岸・沖合・遠洋の3つの漁業形態でめんたいドルを稼ごう〜\n🦐 遊んでみてね〜`;
+  }
+  const url = encodeURIComponent(location.href);
+  const shareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
+  window.open(shareUrl, '_blank', 'width=600,height=400');
+}
+
+function showResult() {
+  screen = 'result'; overlay.style.display='flex'; hud.style.display='none'; updateCoin();
+  let rank = 'エビの足🦐'; let col = '#9e9e9e';
+  if (gameScore>=1000) { rank = '伝説の漁師👑'; col='#ffd700'; }
+  else if (gameScore>=700) { rank = '海の王者🐋'; col='#00e5ff'; }
+  else if (gameScore>=500) { rank = '大漁漁師🎣'; col='#76ff03'; }
+  else if (gameScore>=300) { rank = '腕利き漁師🐟'; col='#ff9100'; }
+  else if (gameScore>=150) { rank = '若手漁師🦐'; col='#ff7043'; }
+  const earned = Math.floor(gameScore * 0.1);
+  totalPoints += earned; saveData(); updateCoin();
+  overlayContent.innerHTML = `
+    <h1>🎣 結果発表</h1>
+    <div class="big">${gameScore}MD</div>
+    <p>🍣 めんたいドル: +${earned}MD</p>
+    <p>ランク: <span class="rank" style="color:${col}">${rank}</span></p>
+    <div style="margin-top:10px;">
+      <button class="btn btn-shop" onclick="showShop()">🛒 ショップ</button>
+      <button class="btn btn-primary" onclick="startGame(activeZone)">🎮 もう一回</button>
+      <button class="btn btn-x" onclick="shareX(${gameScore}, '${rank}')">X シェア</button>
+    </div>`;
+}
+
+function getMouseX(e) {
+  const rect = cv.getBoundingClientRect();
+  const cx = (e.touches ? e.touches[0].clientX : e.clientX);
+  return (cx - rect.left) * (800 / rect.width);
+}
+
+let keys = {};
+let cheatBuffer = '';
+window.addEventListener('keydown',e=>{ keys[e.key]=true; if(e.code==='Space'){ e.preventDefault(); onAction(); }
+  cheatBuffer += e.key.toLowerCase();
+  if (cheatBuffer.endsWith('ala')) {
+    totalPoints += 10000; updateCoin();
+    addParticles(boatX, hookY<150?150:hookY, '#ffd700', 60);
+    scoreBox.textContent = '✨ アラスーパーボーナス +10000MD!';
+    setTimeout(()=> scoreBox.textContent='Score: '+gameScore, 2000);
+    cheatBuffer = '';
+  }
+  if (cheatBuffer.endsWith('shari') || cheatBuffer.endsWith('シャリ')) {
+    totalPoints += 1000; updateCoin();
+    addParticles(boatX, hookY<150?150:hookY, '#ff69b4', 40);
+    scoreBox.textContent = '🍣 しゃりボーナス +1000MD!';
+    setTimeout(()=> scoreBox.textContent='Score: '+gameScore, 1700);
+    cheatBuffer = '';
+  }
+  if (cheatBuffer.endsWith('ragnarok')) {
+    localStorage.removeItem(SAVE_KEY);
+    totalPoints = 0; ownedItems = [];
+    updateCoin();
+    addParticles(boatX, hookY<150?150:hookY, '#ff3333', 80);
+    scoreBox.textContent = '💀 RAGNAROK — 世界がリセットされた！';
+    setTimeout(()=> scoreBox.textContent='Score: '+gameScore, 3000);
+    cheatBuffer = '';
+  }
+  if(cheatBuffer.length>30) cheatBuffer=cheatBuffer.slice(-30);
+});
+window.addEventListener('keyup',e=>{ keys[e.key]=false; });
+cv.addEventListener('mousedown', onAction);
+cv.addEventListener('touchstart', e=>{ e.preventDefault(); onAction(); }, {passive:false});
+cv.addEventListener('mousemove', e=>{ targetBoatX = getMouseX(e); });
+cv.addEventListener('touchmove', e=>{ targetBoatX = getMouseX(e); }, {passive:false});
+
+function onAction() { if (screen!=='game') return; const st=getStats();
+  if (hookState==='idle') { hookState='drop'; caughtFish=null; }
+  else if (hookState==='drop') { hookState='reel'; }
+}
+
+function addParticles(x,y,color,count=6) { for(let i=0;i<count;i++) particles.push({x,y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,life:1,color}); }
+function addRipple(x,y) { ripples.push({x,y,r:1,alpha:1}); }
+
+function update(dt) {
+  const st = getStats();
+  if (screen==='game') {
+    timer += dt;
+    if (timer>=1) { timer-=1; gameTime--; timerBox.textContent='Time: '+gameTime; if(gameTime<=0){ showResult(); } }
+    // player boat
+    let spd = 0.08 * st.spdMult;
+    if (keys['ArrowLeft']||keys['Left']) targetBoatX -= 6*st.spdMult;
+    if (keys['ArrowRight']||keys['Right']) targetBoatX += 6*st.spdMult;
+    targetBoatX = Math.max(40, Math.min(760, targetBoatX));
+    boatX += (targetBoatX - boatX) * spd;
+    // player hooks
+    let dropSpd = 2.5 * st.hookSpdMult;
+    let reelSpd = 3.0 * st.hookSpdMult;
+    let hookXs = st.tripleRod ? [boatX-30, boatX, boatX+30] : [boatX];
+    let pHook = {state:hookState, y:hookY, caughtFish:caughtFish};
+    updateHook(pHook, hookXs, st, dropSpd, reelSpd);
+    hookState = pHook.state; hookY = pHook.y; caughtFish = pHook.caughtFish;
+    // auto boats
+    autoBoats.forEach((ab,idx)=>{
+      ab.timer += dt;
+      // collect candidate fishes
+      let candidates = [];
+      fishList.forEach(f=>{ if(!f.alive) return; let d=Math.hypot(f.x-ab.x, f.y-150); candidates.push({f,d}); });
+      candidates.sort((a,b)=>a.d-b.d);
+      let nearest = candidates.length>0 ? candidates[0].f : null;
+      // 35% chance to pick 2nd nearest to spread out
+      if (candidates.length>1 && Math.random()<0.35 && candidates[1].d < candidates[0].d+200) nearest = candidates[1].f;
+      if (nearest) {
+        // jitter target so boats don't overlap perfectly
+        let jitter = Math.sin(Date.now()/800 + idx*3)*45;
+        ab.targetX = Math.max(40, Math.min(760, nearest.x + jitter));
+      } else {
+        // patrol mode: move broadly left-right
+        let baseX = (idx+1)*(800/(autoBoats.length+1));
+        ab.targetX = Math.max(40, Math.min(760, baseX + Math.sin(Date.now()/1200 + idx*2)*280));
+      }
+      // zone assignment
+      let z = autoBoats.length;
+      if (z === 2) {
+        let leftMax = 400, rightMin = 400;
+        if (idx === 0) ab.targetX = Math.max(40, Math.min(leftMax-10, ab.targetX));
+        if (idx === 1) ab.targetX = Math.max(rightMin+10, Math.min(760, ab.targetX));
+      }
+      ab.targetX = Math.max(40, Math.min(760, ab.targetX));
+      ab.x += (ab.targetX - ab.x) * spd;
+      // auto drop / reel
+      let nearestDist = candidates.length>0 ? candidates[0].d : 9999;
+      if (ab.hookState==='idle' && nearestDist < 300 && ab.timer > 1.5) { ab.hookState='drop'; ab.timer=0; }
+      else if (ab.hookState==='drop' && (ab.hookY>=ab.maxDepth||ab.hookY>=hookMaxDepth||ab.timer>2.5)) { ab.hookState='reel'; }
+      else if (ab.hookState==='reel' && ab.hookY<=70) { ab.hookState='idle'; ab.hookY=70; if(ab.caughtFish){ gameScore+=Math.floor(ab.caughtFish.pts*st.scoreMult); scoreBox.textContent='Score: '+gameScore; ab.caughtFish=null; } }
+      let autoHookXs = st.tripleRod ? [ab.x-hookOffX, ab.x, ab.x+hookOffX] : [ab.x];
+      updateHook({state:ab.hookState, y:ab.hookY, setState:s=>ab.hookState=s, setY:y=>ab.hookY=y, reset:()=>{ab.hookState='idle';ab.hookY=70;}}, autoHookXs, st, dropSpd, reelSpd, ab);
+    });
+    // fish
+    while(fishList.length<st.maxFish) spawnFish();
+    fishList.forEach(f=>{
+      f.x += f.vx; f.angle += 0.05;
+      if (f.x<-30) f.x=830; if (f.x>830) f.x=-30;
+      f.y += Math.sin(f.angle)*0.4;
+    });
+    fishList = fishList.filter(f=>f.alive);
+    // bubbles
+    bubbles.forEach(b=>{ b.y -= b.spd; if (b.y<120){ b.y=580; b.x=Math.random()*800; } });
+    // particles
+    particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.life-=0.03; });
+    particles = particles.filter(p=>p.life>0);
+    // ripples
+    ripples.forEach(r=>{ r.r+=1.5; r.alpha-=0.025; });
+    ripples = ripples.filter(r=>r.alpha>0);
+  }
+}
+
+function updateHook(hookObj, hookXs, st, dropSpd, reelSpd, abObj) {
+  let useDirect = !hookObj.setState;
+  let setState = useDirect ? (s=> hookObj.state=s) : (s=> hookObj.setState(s));
+  let setY = useDirect ? (y=> hookObj.y=y) : (y=> hookObj.setY(y));
+  for (let hx of hookXs) {
+    let hy = hookObj.y;
+    let caught = abObj ? abObj.caughtFish : hookObj.caughtFish;
+    if (hookObj.state==='drop') { hy += dropSpd; if (hy>=hookMaxDepth) setState('reel'); }
+    else if (hookObj.state==='reel') { hy -= reelSpd; if (hy<=70) { hy=70; setState('idle'); if(caught){
+          // 魚をストックに追加（直接MDには変換しない）
+          const fType = caught.type || caught.name;
+          fishStock[fType] = (fishStock[fType]||0) + 1;
+          saveData();
+          gameScore+=Math.floor(caught.pts*st.scoreMult); scoreBox.textContent='Score: '+gameScore;
+          if(abObj) abObj.caughtFish=null; else hookObj.caughtFish=null;
+        } } }
+    setY(hy);
+    for (let f of fishList) {
+      if (!f.alive) continue;
+      if (caught) break;
+      let dx = hx - f.x; let dy = (hy+35) - f.y;
+      if (Math.hypot(dx,dy) < (f.r+10)*st.hookSize) {
+        let cf = {name:f.name, pts:f.pts, type:f.type || f.name}; f.alive=false;
+        setState('reel'); addParticles(f.x,f.y,f.color,10); addRipple(f.x,f.y);
+        if (abObj) abObj.caughtFish = cf; else hookObj.caughtFish = cf;
+        break;
+      }
+    }
+  }
+}
+
+function drawBoat(bx, hy, cf, isPlayer, st) {
+  const boatLevel = st.boatLevel || 1;
+  const bL = boatLevel;
+  let boatColor = isPlayer ? '#5d4037' : '#4a148c';
+  let bodyColor = isPlayer ? '#8d6e63' : '#6a1b9a';
+  let hullColor = isPlayer ? '#3e2723' : '#311b92';
+
+  if (bL === 3) { // 大型船
+    let w=48, h=16;
+    ctx.fillStyle=hullColor; ctx.fillRect(bx-w,65,w*2,h);
+    ctx.fillStyle=bodyColor; ctx.fillRect(bx-w+4,62,w*2-8,6);
+    ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.fillRect(bx-w+10,58,14,8);
+    // 多数のマスト
+    ctx.strokeStyle='#5d4037'; ctx.lineWidth=3; 
+    ctx.beginPath(); ctx.moveTo(bx-28,65); ctx.lineTo(bx-28,30); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx+28,65); ctx.lineTo(bx+28,30); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx,65); ctx.lineTo(bx,20); ctx.stroke();
+    ctx.fillStyle=bodyColor; ctx.beginPath(); ctx.moveTo(bx-36,76); ctx.lineTo(bx+36,76); ctx.lineTo(bx+26,88); ctx.lineTo(bx-26,88); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#f0f0f0'; ctx.beginPath(); ctx.arc(bx+10,55,4,0,Math.PI*2); ctx.fill();
+    ctx.font='bold 10px sans-serif'; ctx.fillStyle='#ffd54f'; ctx.fillText('🚢', bx-6, 86);
+  } else if (bL === 2) { // 中型船
+    let w=32, h=14;
+    ctx.fillStyle=hullColor; ctx.fillRect(bx-w-4,65,w*2+8,h);
+    ctx.fillStyle=bodyColor; ctx.fillRect(bx-w,62,w*2,6);
+    ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.fillRect(bx-8,59,16,6);
+    ctx.strokeStyle='#5d4037'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(bx,55); ctx.lineTo(bx+2,25); ctx.stroke();
+    ctx.fillStyle=hullColor; ctx.beginPath(); ctx.moveTo(bx-32,76); ctx.lineTo(bx+32,76); ctx.lineTo(bx+22,86); ctx.lineTo(bx-22,86); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#f0f0f0'; ctx.beginPath(); ctx.arc(bx,52,3,0,Math.PI*2); ctx.fill();
+    ctx.font='bold 10px sans-serif'; ctx.fillStyle='#ffd54f'; ctx.fillText('🚤', bx-6, 84);
+  } else { // 沿岸ボート
+    ctx.fillStyle=hullColor; ctx.fillRect(bx-20,62,40,10);
+    ctx.fillStyle=bodyColor; ctx.beginPath(); ctx.ellipse(bx,62,20,5,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=boatColor; ctx.beginPath(); ctx.ellipse(bx,68,14,3,0,0,Math.PI*2); ctx.fill();
+    // パドル
+    ctx.strokeStyle='#5d4037'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(bx-4,55); ctx.lineTo(bx+4,45); ctx.stroke();
+    ctx.fillStyle=hullColor; ctx.beginPath(); ctx.moveTo(bx-24,70); ctx.lineTo(bx+24,70); ctx.lineTo(bx+16,78); ctx.lineTo(bx-16,78); ctx.closePath(); ctx.fill();
+    ctx.font='bold 10px sans-serif'; ctx.fillStyle='#ffd54f'; ctx.fillText('🛶', bx-6, 82);
+  }
+
+  let hookXs = st.tripleRod ? [bx-30, bx, bx+30] : [bx];
+  hookXs.forEach(hx=>{
+    ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(hx,70); ctx.lineTo(hx,hy+25); ctx.stroke();
+    let hr = 5 * st.hookSize;
+    ctx.strokeStyle='#b0bec5'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(hx,hy+20,hr,0,Math.PI,false); ctx.stroke();
+  });
+  if (cf) { ctx.font='bold 14px sans-serif'; ctx.fillStyle='#fff'; ctx.fillText(cf.name, bx-20, hy+50); }
+  if (!isPlayer) { ctx.font='bold 12px sans-serif'; ctx.fillStyle='#ffd54f'; ctx.fillText('🤖', bx-6, 50); }
+}
+
+function draw() {
+  let pal;
+  switch(activeZone) {
+    case 'offshore':  pal = {bg:'#0c3540', sky:'#1565c0', surface:'#0288d1', water:'#013a4a'}; break;
+    case 'pelagic':   pal = {bg:'#1a0826', sky:'#311b92', surface:'#6a1b9a', water:'#240024'}; break;
+    case 'coastal':
+    default:          pal = {bg:'#0b2a4a', sky:'#1565c0', surface:'#0277bd', water:'#01579b'}; break;
+  }
+  ctx.fillStyle=pal.bg; ctx.fillRect(0,0,800,600);
+  ctx.fillStyle=pal.sky; ctx.fillRect(0,0,800,100);
+  ctx.fillStyle=pal.surface; ctx.fillRect(0,95,800,10);
+  ctx.fillStyle=pal.water; ctx.fillRect(0,105,800,495);
+  // bubbles
+  bubbles.forEach(b=>{ ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fill(); });
+  // ripples
+  ripples.forEach(r=>{ ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.strokeStyle=`rgba(255,255,255,${r.alpha*0.5})`; ctx.lineWidth=2; ctx.stroke(); });
+  const stDraw = getStats();
+  drawBoat(boatX, hookY, caughtFish, true, stDraw);
+  autoBoats.forEach(ab=>{ drawBoat(ab.x, ab.hookY, ab.caughtFish, false, stDraw); });
+  // fish
+  fishList.forEach(f=>{
+    ctx.save(); ctx.translate(f.x,f.y); if (f.vx<0) ctx.scale(-1,1);
+    // body
+    ctx.fillStyle=f.color; ctx.beginPath(); ctx.ellipse(0,0,f.r*1.4,f.r,0,0,Math.PI*2); ctx.fill();
+    // tail
+    ctx.beginPath(); ctx.moveTo(-f.r*1.1,0); ctx.lineTo(-f.r*1.8,-f.r*0.6); ctx.lineTo(-f.r*1.8,f.r*0.6); ctx.closePath(); ctx.fill();
+    // eye
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(f.r*0.6,-f.r*0.2,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(f.r*0.7,-f.r*0.2,1.5,0,Math.PI*2); ctx.fill();
+    // points indicator
+    ctx.restore();
+  });
+  // particles
+  particles.forEach(p=>{ ctx.globalAlpha=p.life; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill(); });
+  ctx.globalAlpha=1;
+  // title ambient
+  if (screen==='title') { ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.beginPath(); ctx.arc(400,200,180,0,Math.PI*2); ctx.fill(); }
+}
+
+function tick(ts) {
+  const dt = Math.min((ts - lastTime)/1000, 0.05);
+  lastTime = ts;
+  update(dt);
+  draw();
+  requestAnimationFrame(tick);
+}
+
+loadSave(); updateCoin(); showTitle(); requestAnimationFrame(tick);
+</script>
+</body>
+</html>
