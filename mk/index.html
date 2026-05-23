@@ -666,7 +666,7 @@ function update(dt) {
     timer += dt;
     if (timer>=1) { timer-=1; gameTime--; timerBox.textContent='Time: '+gameTime; if(gameTime<=0){ showResult(); } }
     // player boat
-    let spd = 0.08 * st.spdMult;
+    let spd = 0.008 * st.spdMult;
     if (keys['ArrowLeft']||keys['Left']) targetBoatX -= 6*st.spdMult;
     if (keys['ArrowRight']||keys['Right']) targetBoatX += 6*st.spdMult;
     targetBoatX = Math.max(40, Math.min(760, targetBoatX));
@@ -770,14 +770,13 @@ function updateHook(hookObj, hookXs, st, dropSpd, reelSpd, abObj) {
     let hy = hookObj.y;
     let caught = caughtList[hi];
     if (hookObj.state==='drop') {
-      // 多本針の場合、底で待機して魚がかかるまで降ろし続ける
+      const caughtCount = caughtList.filter(c => !!c).length;
       const atBottom = hy >= hookMaxDepth;
-      const allCaught = caughtList.length === hookXs.length && caughtList.every(c => !!c);
-      if (!multiHook || !atBottom || !allCaught) {
-        if (!atBottom) hy += dropSpd;
-      }
-      if (!multiHook && atBottom) setState('reel');
-      if (multiHook && allCaught) setState('reel');
+      if (!atBottom) hy += dropSpd;
+      else hy = hookMaxDepth;
+      // 多本針: 3匹釣れた時点で即上昇 / 1本針: 底まで降りたら上昇
+      if (multiHook && caughtCount >= hookXs.length) setState('reel');
+      else if (!multiHook && atBottom) setState('reel');
     }
     else if (hookObj.state==='reel') {
       hy -= reelSpd;
