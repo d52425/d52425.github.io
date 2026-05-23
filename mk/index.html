@@ -39,6 +39,7 @@ canvas { display:block; image-rendering:pixelated; }
 .btn-process { background:linear-gradient(180deg,#ab47bc,#7b1fa2); color:#fff; box-shadow:0 4px 14px rgba(123,31,162,0.45); }
 .btn-sell { background:linear-gradient(180deg,#66bb6a,#2e7d32); color:#fff; box-shadow:0 4px 14px rgba(46,125,50,0.45); }
 .btn-storage { background:linear-gradient(180deg,#8d6e63,#5d4037); color:#fff; box-shadow:0 4px 14px rgba(93,64,55,0.45); }
+.btn-max { background:linear-gradient(180deg,#ef5350,#c62828); color:#fff; box-shadow:0 4px 14px rgba(198,40,40,0.45); }
 #topBar { width:800px; display:flex; align-items:center; justify-content:space-between; padding:8px 16px; color:#fff; font-weight:900; font-size:18px; }
 #topBar .coin { font-size:22px; }
 #shopWrap { display:none; position:absolute; top:0; left:0; width:800px; height:600px; flex-direction:column; z-index:8; background:#0b2a4a; }
@@ -276,18 +277,59 @@ function buildShop() {
     else if (u.id === 'rod_platinum') effectTxt = `スコア x2.0`;
     else if (u.id === 'auto_man') effectTxt = `自動船 ${curLv}隻`;
     
+    const maxBuyInfo = calcMaxBuy(u.id);
+    const canMaxBuy = maxBuyInfo.count > 0 && reqsMet;
+    
     const card = document.createElement('div');
     card.className = 'shopCard ' + cls;
     card.innerHTML = `
       ${lvTxt}
       <div class="name">${u.name}</div>
       <div class="desc">${u.desc}${effectTxt?'<br><small style="color:#ffd54f;">現在: '+effectTxt+'</small>':''}${u.req.length?'<br><small>必要: '+u.req.map(r=>UPGRADES.find(x=>x.id===r).name).join(', ')+'</small>':''}</div>
-      <div class="price">${isMax ? '---' : nextPrice + 'MD'}</div>
-      <button class="buyBtn">${btnTxt}</button>`;
-    const btn = card.querySelector('.buyBtn');
-    btn.onclick = () => { if (!isMax && canBuy && reqsMet) { buyUpgrade(u.id); } };
+      <div class="price">
+        ${isMax ? '---' : nextPrice + 'MD'}
+        ${canMaxBuy ? '<br><small style="color:#b3e5fc;">MAX: ' + maxBuyInfo.totalPrice + 'MD→Lv.' + maxBuyInfo.finalLv + '</small>' : ''}
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px; width:100%; margin-top:auto;">
+        <button class="buyBtn">${btnTxt}</button>
+        ${canMaxBuy ? '<button class="buyBtn" style="background:#ef5350; color:#fff;">MAX</button>' : ''}
+      </div>`;
+    const buttons = card.querySelectorAll('button');
+    buttons[0].onclick = () => { if (!isMax && canBuy && reqsMet) { buyUpgrade(u.id); } };
+    if (buttons[1]) {
+      buttons[1].onclick = () => { buyUpgradeMax(u.id); };
+    }
     shopGrid.appendChild(card);
   });
+}
+function calcMaxBuy(id) {
+  const u = UPGRADES.find(x => x.id === id);
+  if (!u) return { count: 0, totalPrice: 0, finalLv: upgradeLevels[id] || 0 };
+  let curLv = upgradeLevels[id] || 0;
+  let totalPrice = 0;
+  let count = 0;
+  let spareMoney = totalPoints;
+  while (curLv < u.maxLv) {
+    const scale = u.priceScale || 1.5;
+    const price = Math.floor(u.price * Math.pow(scale, curLv));
+    if (spareMoney < price) break;
+    spareMoney -= price;
+    totalPrice += price;
+    curLv += 1;
+    count += 1;
+  }
+  return { count, totalPrice, finalLv: curLv };
+}
+
+function buyUpgradeMax(id) {
+  const u = UPGRADES.find(x => x.id === id);
+  if (!u) return;
+  if (u.req.some(r => (upgradeLevels[r] || 0) === 0)) return;
+  let info = calcMaxBuy(id);
+  if (info.count <= 0) return;
+  totalPoints -= info.totalPrice;
+  upgradeLevels[id] = info.finalLv;
+  saveData(); updateCoin(); buildShop();
 }
 function buyUpgrade(id) {
   const u = UPGRADES.find(x => x.id === id);
