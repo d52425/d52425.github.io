@@ -20,6 +20,7 @@ html, body { width:100%; height:100%; background:#0a1e3c; overflow:hidden; font-
 canvas { display:block; image-rendering:pixelated; }
 #hud { position:absolute; top:0; left:0; width:800px; height:600px; pointer-events:none; display:none; }
 #hud * { pointer-events:none; }
+#hud button { pointer-events:auto; }
 #scoreBox, #timerBox { position:absolute; top:12px; padding:6px 14px; background:rgba(0,0,0,0.55); border-radius:20px; color:#fff; font-weight:900; font-size:18px; text-shadow:1px 1px 2px #000; }
 #scoreBox { left:14px; }
 #timerBox { right:14px; }
@@ -62,7 +63,7 @@ canvas { display:block; image-rendering:pixelated; }
   <div id="topBar"><span>🎣 めんたい工房 <small style="opacity:0.6;">v1.0.0</small></span><span class="coin" id="topCoin">💰 0MD</span></div>
   <div id="gameContainer">
     <canvas id="cv" width="800" height="600"></canvas>
-    <div id="hud"><div id="scoreBox">Score: 0</div><div id="zoneBox" style="position:absolute;bottom:12px;left:14px;padding:4px 12px;background:rgba(0,0,0,0.45);border-radius:16px;color:#b3e5fc;font-weight:900;font-size:14px;">沿岸漁業</div><div id="timerBox">Time: 60</div></div>
+    <div id="hud"><div id="scoreBox">Score: 0</div><div id="zoneBox" style="position:absolute;bottom:12px;left:14px;padding:4px 12px;background:rgba(0,0,0,0.45);border-radius:16px;color:#b3e5fc;font-weight:900;font-size:14px;">沿岸漁業</div><div id="timerBox">Time: 60</div><button id="returnBtn" onclick="returnToPort()" style="position:absolute;bottom:12px;right:14px;padding:6px 14px;background:linear-gradient(180deg,#ef5350,#c62828);color:#fff;border:none;border-radius:16px;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(198,40,40,0.4);pointer-events:auto;">🏠 帰港</button></div>
     <div id="overlay"><div id="overlayContent"></div></div>
     <div id="shopWrap">
       <div id="shopHeader"><span>🛒 漁業ショップ</span><button class="btn btn-primary" id="backBtn" onclick="showTitle()">⬅ 戻る</button></div>
@@ -82,10 +83,11 @@ const topCoin = document.getElementById('topCoin');
 const scoreBox = document.getElementById('scoreBox');
 const timerBox = document.getElementById('timerBox');
 
-const SAVE_KEY = 'fishing_save_v2';
+const SAVE_KEY = 'fishing_save_v3';
 
 let totalPoints = 0;
-let ownedItems = [];
+let ownedItems = [];  // 旧互換用
+let upgradeLevels = {}; // { ship_spd: 5, auto_man: 3, ... }
 let fishStock = {};  // 各魚の種類ごとの在庫 { 'aji': 5, 'iwashi': 3, ... }
 let screen = 'title';
 let lastTime = 0;
@@ -125,54 +127,81 @@ const FISH_TYPES = {
 };
 
 const UPGRADES = [
-  { id:'boat_base', name:'ボート', desc:'沿岸漁業が可能！アジ、イワシ、エビなどが獲れる。', price:0, req:[] },
-  { id:'boat_mid', name:'中型船', desc:'沖合漁業が可能！サバ、イカ、サンマ、カニなどが獲れる。', price:300, req:['boat_base'] },
-  { id:'boat_large', name:'大型船', desc:'遠洋漁業が可能！マグロ、カツオ、スケトウダラなどが獲れる。', price:800, req:['boat_mid'] },
-  { id:'ship_spd1', name:'船速UP I', desc:'船の移動速度が1.3倍！', price:100, req:[] },
-  { id:'ship_spd2', name:'船速UP II', desc:'船の移動速度が1.6倍！', price:250, req:['ship_spd1'] },
-  { id:'ship_sonar1', name:'魚群レーダー I', desc:'同時出現数が13匹に！', price:200, req:[] },
-  { id:'ship_sonar2', name:'魚群レーダー II', desc:'同時出現数が15匹に！', price:500, req:['ship_sonar1'] },
-  { id:'rod_fast1', name:'高速釣り I', desc:'釣り上げ速度が1.3倍！', price:150, req:[] },
-  { id:'rod_fast2', name:'高速釣り II', desc:'釣り上げ速度が1.8倍！', price:400, req:['rod_fast1'] },
-  { id:'rod_long1', name:'深海ロッド I', desc:'最大水深が550に！', price:200, req:[] },
-  { id:'rod_long2', name:'深海ロッド II', desc:'最大水深が650に！', price:600, req:['rod_long1'] },
-  { id:'rod_gold1', name:'ゴールド竿', desc:'スコアが1.5倍に！', price:300, req:[] },
-  { id:'auto_man1', name:'自動釣りマン I', desc:'ボートが増えて自動で釣り！', price:350, req:[] },
-  { id:'auto_man2', name:'自動釣りマン II', desc:'釣りマンが2隻に増殖！', price:700, req:['auto_man1'] },
-  { id:'triple_rod', name:'トリプル竿', desc:'釣り針が3本同時に！', price:450, req:[] },
-  { id:'big_hook', name:'でか釣り針', desc:'当たり判定2倍＆レア率UP', price:300, req:[] }
+  { id:'boat_base', name:'ボート', desc:'沿岸漁業が可能！アジ、イワシ、エビなどが獲れる。', price:0, maxLv:1, req:[] },
+  { id:'boat_mid', name:'中型船', desc:'沖合漁業が可能！サバ、イカ、サンマ、カニなどが獲れる。', price:300, maxLv:1, req:['boat_base'] },
+  { id:'boat_large', name:'大型船', desc:'遠洋漁業が可能！マグロ、カツオ、スケトウダラなどが獲れる。', price:800, maxLv:1, req:['boat_mid'] },
+  { id:'ship_spd', name:'船速UP', desc:'船の移動速度が上昇！レベルごとに+0.3倍', price:100, maxLv:99, req:[], priceScale:1.5 },
+  { id:'ship_sonar', name:'魚群レーダー', desc:'同時出現数が増加！レベルごとに+1匹', price:200, maxLv:99, req:[], priceScale:1.5 },
+  { id:'rod_fast', name:'高速釣り', desc:'釣り上げ速度が上昇！レベルごとに+0.5倍', price:150, maxLv:99, req:[], priceScale:1.5 },
+  { id:'rod_long', name:'深海ロッド', desc:'最大水深が拡張！レベルごとに+50', price:200, maxLv:99, req:[], priceScale:1.5 },
+  { id:'rod_gold', name:'ゴールド竿', desc:'スコアが1.5倍に！', price:300, maxLv:1, req:[] },
+  { id:'rod_platinum', name:'プラチナ竿', desc:'スコアが2.0倍に！ゴールド竿の上位互換。', price:600, maxLv:1, req:['rod_gold'] },
+  { id:'auto_man', name:'自動釣りマン', desc:'自動で釣ってくれる漁船！最大5隻まで', price:350, maxLv:5, req:[], priceScale:2.0 },
+  { id:'triple_rod', name:'トリプル竿', desc:'釣り針が3本同時に！', price:450, maxLv:1, req:[] },
+  { id:'big_hook', name:'でか釣り針', desc:'当たり判定2倍＆レア率UP', price:300, maxLv:1, req:[] }
 ];
 
 function loadSave() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
-    if (raw) { const d = JSON.parse(raw); totalPoints = d.totalPoints||0; ownedItems = d.items||[]; fishStock = d.fishStock||{}; }
+    if (raw) { 
+      const d = JSON.parse(raw); 
+      totalPoints = d.totalPoints||0; 
+      upgradeLevels = d.upgradeLevels || {}; 
+      fishStock = d.fishStock||{}; 
+      ownedItems = d.items||[]; // 旧互換
+      // v2→v3移行: 旧ownedItemsをupgradeLevelsにマイグレ
+      if (d.items && !d.upgradeLevels) {
+        const mg = {ship_spd:'ship_spd', ship_spd1:'ship_spd', ship_spd2:'ship_spd',
+                    ship_sonar:'ship_sonar', ship_sonar1:'ship_sonar', ship_sonar2:'ship_sonar',
+                    rod_fast:'rod_fast', rod_fast1:'rod_fast', rod_fast2:'rod_fast',
+                    rod_long:'rod_long', rod_long1:'rod_long', rod_long2:'rod_long',
+                    auto_man:'auto_man', auto_man1:'auto_man', auto_man2:'auto_man',
+                    rod_gold:'rod_gold', rod_gold1:'rod_gold',
+                    triple_rod:'triple_rod', big_hook:'big_hook',
+                    boat_base:'boat_base', boat_mid:'boat_mid', boat_large:'boat_large'};
+        d.items.forEach(id=>{ const k=mg[id]; if(k){ upgradeLevels[k]=(upgradeLevels[k]||0)+1; } });
+        // maxLv制限
+        ['boat_base','boat_mid','boat_large','rod_gold','triple_rod','big_hook'].forEach(k=>{
+          if(upgradeLevels[k]>1) upgradeLevels[k]=1;
+        });
+        if(upgradeLevels.auto_man>5) upgradeLevels.auto_man=5;
+        saveData();
+      }
+    }
   } catch(e){}
 }
 function saveData() {
-  localStorage.setItem(SAVE_KEY, JSON.stringify({totalPoints, items:ownedItems, fishStock}));
+  localStorage.setItem(SAVE_KEY, JSON.stringify({totalPoints, upgradeLevels, fishStock}));
 }
 
 function getStats() {
-  let spdMult = 1.0, maxFish = 12, hookSpdMult = 1.0, depth = 500, scoreMult = 1.0;
-  let autoMen = 0, tripleRod = false, hookSize = 1.0, rareBonus = 0;
   let boatLevel = 1;
-  if (ownedItems.includes('boat_base')) boatLevel = 1;
-  if (ownedItems.includes('boat_mid')) boatLevel = 2;
-  if (ownedItems.includes('boat_large')) boatLevel = 3;
-  if (ownedItems.includes('ship_spd1')) spdMult = 1.3;
-  if (ownedItems.includes('ship_spd2')) spdMult = 1.6;
-  if (ownedItems.includes('ship_sonar1')) maxFish = 13;
-  if (ownedItems.includes('ship_sonar2')) maxFish = 15;
-  if (ownedItems.includes('rod_fast1')) hookSpdMult = 1.3;
-  if (ownedItems.includes('rod_fast2')) hookSpdMult = 1.8;
-  if (ownedItems.includes('rod_long1')) depth = 550;
-  if (ownedItems.includes('rod_long2')) depth = 650;
-  if (ownedItems.includes('rod_gold1')) scoreMult = 1.5;
-  if (ownedItems.includes('auto_man1')) autoMen = 1;
-  if (ownedItems.includes('auto_man2')) autoMen = 2;
-  if (ownedItems.includes('triple_rod')) tripleRod = true;
-  if (ownedItems.includes('big_hook')) { hookSize = 2.0; rareBonus = 0.05; }
+  if (upgradeLevels.boat_base) boatLevel = 1;
+  if (upgradeLevels.boat_mid) boatLevel = 2;
+  if (upgradeLevels.boat_large) boatLevel = 3;
+
+  let spdLv = upgradeLevels.ship_spd || 0;
+  let spdMult = 1.0 + spdLv * 0.3;
+
+  let sonarLv = upgradeLevels.ship_sonar || 0;
+  let maxFish = 12 + sonarLv;
+
+  let fastLv = upgradeLevels.rod_fast || 0;
+  let hookSpdMult = 1.0 + fastLv * 0.5;
+
+  let longLv = upgradeLevels.rod_long || 0;
+  let depth = 500 + longLv * 50;
+
+  let scoreMult = 1.0;
+  if (upgradeLevels.rod_platinum) scoreMult = 2.0;
+  else if (upgradeLevels.rod_gold) scoreMult = 1.5;
+
+  let autoMen = upgradeLevels.auto_man || 0;
+  let tripleRod = !!upgradeLevels.triple_rod;
+  let hookSize = upgradeLevels.big_hook ? 2.0 : 1.0;
+  let rareBonus = upgradeLevels.big_hook ? 0.05 : 0;
+
   return { spdMult, maxFish, hookSpdMult, depth, scoreMult, autoMen, tripleRod, hookSize, rareBonus, boatLevel };
 }
 
@@ -200,6 +229,7 @@ function showTitle() {
       <button class="btn btn-primary" onclick="startGame('offshore')" ${st.boatLevel<2?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🚤 沖合漁業</button>
       <button class="btn btn-primary" onclick="startGame('pelagic')" ${st.boatLevel<3?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🚢 遠洋漁業</button>
       <br>
+      <button class="btn btn-primary" style="background:#ff8c00;" onclick="showAquaculture()">🦐 養殖場へ</button>
       <button class="btn btn-process" onclick="showFactory()">🔧 加工</button>
       <button class="btn btn-sell" onclick="showMarket()">🏪 販売</button>
       <br>
@@ -213,29 +243,65 @@ function showShop() {
 }
 function buildShop() {
   shopGrid.innerHTML = '';
-  UPGRADES.forEach(u=>{
-    const owned = ownedItems.includes(u.id);
-    const canBuy = !owned && totalPoints >= u.price;
-    const reqsMet = u.req.every(r=>ownedItems.includes(r));
-    let cls = owned ? 'bought' : (canBuy && reqsMet ? 'canBuy' : 'cantBuy');
-    let btnTxt = owned ? '✅ 購入済' : (!reqsMet ? '🔒 未解放' : (canBuy ? '購入' : 'MD不足'));
+  UPGRADES.forEach(u => {
+    const curLv = upgradeLevels[u.id] || 0;
+    const isMax = curLv >= u.maxLv;
+    const isOneOff = u.maxLv === 1;
+    const owned = curLv > 0;
+    
+    // 必要アイテムチェック
+    const reqsMet = u.req.every(r => (upgradeLevels[r] || 0) > 0);
+    
+    // 次回価格計算
+    let nextPrice = 0;
+    if (!isMax) {
+      const scale = u.priceScale || 1.5;
+      nextPrice = Math.floor(u.price * Math.pow(scale, curLv));
+    }
+    const canBuy = !isMax && totalPoints >= nextPrice && reqsMet;
+    
+    let cls = isMax ? 'bought' : (canBuy ? 'canBuy' : 'cantBuy');
+    let btnTxt = isMax ? (isOneOff ? '✅ 購入済' : '🔒 MAX') : (!reqsMet ? '🔒 未解放' : (canBuy ? 'UPGRADE' : 'MD不足'));
+    
+    // レベル表示
+    let lvTxt = isOneOff ? '' : `<div style="font-weight:900;font-size:14px;color:#ffd54f;margin-bottom:4px;">Lv.${curLv} / ${u.maxLv}</div>`;
+    
+    // 実際の効果計算
+    let effectTxt = '';
+    if (u.id === 'ship_spd') effectTxt = `速度 x${(1.0 + curLv * 0.3).toFixed(1)}`;
+    else if (u.id === 'ship_sonar') effectTxt = `同時 ${12 + curLv}匹`;
+    else if (u.id === 'rod_fast') effectTxt = `速さ x${(1.0 + curLv * 0.5).toFixed(1)}`;
+    else if (u.id === 'rod_long') effectTxt = `水深 ${500 + curLv * 50}`;
+    else if (u.id === 'rod_gold') effectTxt = `スコア x1.5`;
+    else if (u.id === 'rod_platinum') effectTxt = `スコア x2.0`;
+    else if (u.id === 'auto_man') effectTxt = `自動船 ${curLv}隻`;
+    
     const card = document.createElement('div');
     card.className = 'shopCard ' + cls;
     card.innerHTML = `
+      ${lvTxt}
       <div class="name">${u.name}</div>
-      <div class="desc">${u.desc}${u.req.length?'<br><small>必要: '+u.req.map(r=>UPGRADES.find(x=>x.id===r).name).join(', ')+'</small>':''}</div>
-      <div class="price">${u.price}MD</div>
+      <div class="desc">${u.desc}${effectTxt?'<br><small style="color:#ffd54f;">現在: '+effectTxt+'</small>':''}${u.req.length?'<br><small>必要: '+u.req.map(r=>UPGRADES.find(x=>x.id===r).name).join(', ')+'</small>':''}</div>
+      <div class="price">${isMax ? '---' : nextPrice + 'MD'}</div>
       <button class="buyBtn">${btnTxt}</button>`;
     const btn = card.querySelector('.buyBtn');
-    btn.onclick = ()=>{ if(!owned && canBuy && reqsMet){ buyItem(u.id); } };
+    btn.onclick = () => { if (!isMax && canBuy && reqsMet) { buyUpgrade(u.id); } };
     shopGrid.appendChild(card);
   });
 }
-function buyItem(id) {
-  const u = UPGRADES.find(x=>x.id===id);
-  if (!u || ownedItems.includes(id) || totalPoints < u.price) return;
-  if (u.req.some(r=>!ownedItems.includes(r))) return;
-  totalPoints -= u.price; ownedItems.push(id); saveData(); updateCoin(); buildShop();
+function buyUpgrade(id) {
+  const u = UPGRADES.find(x => x.id === id);
+  if (!u) return;
+  const curLv = upgradeLevels[id] || 0;
+  if (curLv >= u.maxLv) return;
+  const scale = u.priceScale || 1.5;
+  const price = Math.floor(u.price * Math.pow(scale, curLv));
+  if (totalPoints < price) return;
+  if (u.req.some(r => (upgradeLevels[r] || 0) === 0)) return;
+  
+  totalPoints -= price;
+  upgradeLevels[id] = curLv + 1;
+  saveData(); updateCoin(); buildShop();
 }
 
 function startGame(zone='coastal') {
@@ -248,9 +314,18 @@ function startGame(zone='coastal') {
   hookState = 'idle'; hookY = 70; hookOffX = st.tripleRod ? 30 : 0;
   hookMaxDepth = st.depth; caughtFish = null;
   autoBoats = [];
+  const sectionW = 800 / Math.max(st.autoMen, 1);
   for (let i=0; i<st.autoMen; i++) {
-    let bx = (i+1) * (800/(st.autoMen+1));
-    autoBoats.push({ x:bx, targetX:bx, hookState:'idle', hookY:70, caughtFish:null, timer:0 });
+    let minX = i * sectionW;
+    let maxX = (i+1) * sectionW;
+    let bx = (minX + maxX) / 2;
+    autoBoats.push({ 
+      x:bx, targetX:bx, 
+      minX: minX + 30, maxX: maxX - 30,
+      hookState:'idle', hookY:70, 
+      caughtFish:null, timer:0,
+      maxDepth: st.depth
+    });
   }
   fishList = []; particles = []; bubbles = []; ripples = [];
   for (let i=0;i<st.maxFish;i++) spawnFish();
@@ -303,9 +378,10 @@ function showResult() {
     <p>🍣 めんたいドル: +${earned}MD</p>
     <p>ランク: <span class="rank" style="color:${col}">${rank}</span></p>
     <div style="margin-top:10px;">
-      <button class="btn btn-shop" onclick="showShop()">🛒 ショップ</button>
       <button class="btn btn-primary" onclick="startGame(activeZone)">🎮 もう一回</button>
-      <button class="btn btn-x" onclick="shareX(${gameScore}, '${rank}')">X シェア</button>
+      <button class="btn btn-x" onclick="shareX(${gameScore}, '${rank}')">𝕏 シェア</button>
+      <br>
+      <button class="btn btn-primary" onclick="showTitle()">⬅ タイトルへ戻る</button>
     </div>`;
 }
 
@@ -313,6 +389,20 @@ function getMouseX(e) {
   const rect = cv.getBoundingClientRect();
   const cx = (e.touches ? e.touches[0].clientX : e.clientX);
   return (cx - rect.left) * (800 / rect.width);
+}
+
+function returnToPort() {
+  if (screen !== 'game') return;
+  
+  // 釣っている途中でも強制帰港して魚をゲット
+  if (hookState === 'reel' && caughtFish) {
+    accumulateFish(caughtFish.type);
+    const fish = FISH_TYPES[caughtFish.type];
+    particles.push({x:boatX+caughtFish.xOff,y:50,vx:0,vy:-2,life:1,col:fish.color,type:'sparkle'});
+    gameScore += fish.score;
+  }
+  
+  showResult();
 }
 
 let keys = {};
@@ -377,40 +467,61 @@ function update(dt) {
     updateHook(pHook, hookXs, st, dropSpd, reelSpd);
     hookState = pHook.state; hookY = pHook.y; caughtFish = pHook.caughtFish;
     // auto boats
-    autoBoats.forEach((ab,idx)=>{
+    autoBoats.forEach((ab, idx) => {
       ab.timer += dt;
-      // collect candidate fishes
+      
+      // 自分の担当エリア内の魚のみを候補に
       let candidates = [];
-      fishList.forEach(f=>{ if(!f.alive) return; let d=Math.hypot(f.x-ab.x, f.y-150); candidates.push({f,d}); });
-      candidates.sort((a,b)=>a.d-b.d);
-      let nearest = candidates.length>0 ? candidates[0].f : null;
-      // 35% chance to pick 2nd nearest to spread out
-      if (candidates.length>1 && Math.random()<0.35 && candidates[1].d < candidates[0].d+200) nearest = candidates[1].f;
-      if (nearest) {
-        // jitter target so boats don't overlap perfectly
-        let jitter = Math.sin(Date.now()/800 + idx*3)*45;
-        ab.targetX = Math.max(40, Math.min(760, nearest.x + jitter));
+      fishList.forEach(f => {
+        if (!f.alive || f.x < ab.minX || f.x > ab.maxX) return;
+        let d = Math.hypot(f.x - ab.x, f.y - 150);
+        candidates.push({f, d});
+      });
+      candidates.sort((a, b) => a.d - b.d);
+      
+      // 最近傍を追う（担当エリア内で）
+      if (candidates.length > 0) {
+        let nearest = candidates[0].f;
+        // 35%で2番目を選んで分散
+        if (candidates.length > 1 && Math.random() < 0.35 && candidates[1].d < candidates[0].d + 150) {
+          nearest = candidates[1].f;
+        }
+        // 担当範囲内に収める
+        ab.targetX = Math.max(ab.minX, Math.min(ab.maxX, nearest.x));
       } else {
-        // patrol mode: move broadly left-right
-        let baseX = (idx+1)*(800/(autoBoats.length+1));
-        ab.targetX = Math.max(40, Math.min(760, baseX + Math.sin(Date.now()/1200 + idx*2)*280));
+        // 巡回モード: 担当エリアの中央付近を行き来
+        let centerX = (ab.minX + ab.maxX) / 2;
+        let rangeW = (ab.maxX - ab.minX) / 3;
+        ab.targetX = Math.max(ab.minX + 10, Math.min(ab.maxX - 10, 
+          centerX + Math.sin(Date.now() / 1500 + idx * 2.3) * rangeW));
       }
-      // zone assignment
-      let z = autoBoats.length;
-      if (z === 2) {
-        let leftMax = 400, rightMin = 400;
-        if (idx === 0) ab.targetX = Math.max(40, Math.min(leftMax-10, ab.targetX));
-        if (idx === 1) ab.targetX = Math.max(rightMin+10, Math.min(760, ab.targetX));
-      }
-      ab.targetX = Math.max(40, Math.min(760, ab.targetX));
+      
       ab.x += (ab.targetX - ab.x) * spd;
+      
       // auto drop / reel
-      let nearestDist = candidates.length>0 ? candidates[0].d : 9999;
-      if (ab.hookState==='idle' && nearestDist < 300 && ab.timer > 1.5) { ab.hookState='drop'; ab.timer=0; }
-      else if (ab.hookState==='drop' && (ab.hookY>=ab.maxDepth||ab.hookY>=hookMaxDepth||ab.timer>2.5)) { ab.hookState='reel'; }
-      else if (ab.hookState==='reel' && ab.hookY<=70) { ab.hookState='idle'; ab.hookY=70; if(ab.caughtFish){ gameScore+=Math.floor(ab.caughtFish.pts*st.scoreMult); scoreBox.textContent='Score: '+gameScore; ab.caughtFish=null; } }
-      let autoHookXs = st.tripleRod ? [ab.x-hookOffX, ab.x, ab.x+hookOffX] : [ab.x];
-      updateHook({state:ab.hookState, y:ab.hookY, setState:s=>ab.hookState=s, setY:y=>ab.hookY=y, reset:()=>{ab.hookState='idle';ab.hookY=70;}}, autoHookXs, st, dropSpd, reelSpd, ab);
+      let nearestDist = candidates.length > 0 ? candidates[0].d : 9999;
+      if (ab.hookState === 'idle' && nearestDist < 350 && ab.timer > 1.0) { 
+        ab.hookState = 'drop'; ab.timer = 0; 
+      } else if (ab.hookState === 'drop' && (ab.hookY >= ab.maxDepth || ab.hookY >= hookMaxDepth || ab.timer > 3.5)) { 
+        ab.hookState = 'reel'; 
+      } else if (ab.hookState === 'reel' && ab.hookY <= 70) { 
+        ab.hookState = 'idle'; ab.hookY = 70; 
+        if (ab.caughtFish) { 
+          gameScore += Math.floor(ab.caughtFish.pts * st.scoreMult); 
+          scoreBox.textContent = 'Score: ' + gameScore; 
+          ab.caughtFish = null; 
+        } 
+      }
+      
+      let autoHookXs = st.tripleRod ? [ab.x - hookOffX, ab.x, ab.x + hookOffX] : [ab.x];
+      updateHook(
+        {state: ab.hookState, y: ab.hookY, caughtFish: ab.caughtFish,
+         setState: s => ab.hookState = s, 
+         setY: y => ab.hookY = y,
+         reset: () => { ab.hookState = 'idle'; ab.hookY = 70; }
+        }, 
+        autoHookXs, st, dropSpd, reelSpd, ab
+      );
     });
     // fish
     while(fishList.length<st.maxFish) spawnFish();
