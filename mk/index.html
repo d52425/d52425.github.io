@@ -764,12 +764,25 @@ function updateHook(hookObj, hookXs, st, dropSpd, reelSpd, abObj) {
     if (abObj) abObj.caughtFishList = caughtList;
     else hookObj.caughtFishList = caughtList;
   }
+  const multiHook = hookXs.length > 1;
   for (let hi = 0; hi < hookXs.length; hi++) {
     let hx = hookXs[hi];
     let hy = hookObj.y;
     let caught = caughtList[hi];
-    if (hookObj.state==='drop') { hy += dropSpd; if (hy>=hookMaxDepth) setState('reel'); }
-    else if (hookObj.state==='reel') { hy -= reelSpd; if (hy<=70) { hy=70; setState('idle');
+    if (hookObj.state==='drop') {
+      // 多本針の場合、底で待機して魚がかかるまで降ろし続ける
+      const atBottom = hy >= hookMaxDepth;
+      const allCaught = caughtList.length === hookXs.length && caughtList.every(c => !!c);
+      if (!multiHook || !atBottom || !allCaught) {
+        if (!atBottom) hy += dropSpd;
+      }
+      if (!multiHook && atBottom) setState('reel');
+      if (multiHook && allCaught) setState('reel');
+    }
+    else if (hookObj.state==='reel') {
+      hy -= reelSpd;
+      if (hy<=70) {
+        hy=70; setState('idle');
         // 着水時にすべての caughtFish を倉庫に入れる
         for (let cf of caughtList) {
           if (!cf) continue;
@@ -784,7 +797,8 @@ function updateHook(hookObj, hookXs, st, dropSpd, reelSpd, abObj) {
         caughtList.length = 0;
         if (abObj) abObj.caughtFish = null;
         else hookObj.caughtFish = null;
-      } }
+      }
+    }
     setY(hy);
     if (caught) continue; // この針は既に魚を持ってる
     for (let f of fishList) {
@@ -792,11 +806,13 @@ function updateHook(hookObj, hookXs, st, dropSpd, reelSpd, abObj) {
       let dx = hx - f.x; let dy = (hy+35) - f.y;
       if (Math.hypot(dx,dy) < (f.r+10)*st.hookSize) {
         let cf = {name:f.name, pts:f.pts, type:f.type || f.name}; f.alive=false;
-        setState('reel'); addParticles(f.x,f.y,f.color,10); addRipple(f.x,f.y);
+        addParticles(f.x,f.y,f.color,10); addRipple(f.x,f.y);
         caughtList[hi] = cf;
         // 後方互換: 代表で1匹も保持
         if (abObj) abObj.caughtFish = cf;
         else hookObj.caughtFish = cf;
+        // 一本釣りは即座にリール、多本針は全てかかるまで待機
+        if (!multiHook) setState('reel');
         break;
       }
     }
