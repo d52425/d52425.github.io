@@ -37,6 +37,7 @@ canvas { display:block; image-rendering:pixelated; }
 .btn-x { background:linear-gradient(180deg,#1da1f2,#0d8ecf); color:#fff; box-shadow:0 4px 14px rgba(29,161,242,0.5); border:1px solid #4fc3f7; }
 .btn-process { background:linear-gradient(180deg,#ab47bc,#7b1fa2); color:#fff; box-shadow:0 4px 14px rgba(123,31,162,0.45); }
 .btn-sell { background:linear-gradient(180deg,#66bb6a,#2e7d32); color:#fff; box-shadow:0 4px 14px rgba(46,125,50,0.45); }
+.btn-storage { background:linear-gradient(180deg,#8d6e63,#5d4037); color:#fff; box-shadow:0 4px 14px rgba(93,64,55,0.45); }
 #topBar { width:800px; display:flex; align-items:center; justify-content:space-between; padding:8px 16px; color:#fff; font-weight:900; font-size:18px; }
 #topBar .coin { font-size:22px; }
 #shopWrap { display:none; position:absolute; top:0; left:0; width:800px; height:600px; flex-direction:column; z-index:8; background:#0b2a4a; }
@@ -64,7 +65,7 @@ canvas { display:block; image-rendering:pixelated; }
     <div id="hud"><div id="scoreBox">Score: 0</div><div id="zoneBox" style="position:absolute;bottom:12px;left:14px;padding:4px 12px;background:rgba(0,0,0,0.45);border-radius:16px;color:#b3e5fc;font-weight:900;font-size:14px;">沿岸漁業</div><div id="timerBox">Time: 60</div></div>
     <div id="overlay"><div id="overlayContent"></div></div>
     <div id="shopWrap">
-      <div id="shopHeader"><span>🛒 工房ショップ</span><button class="btn btn-primary" id="backBtn" onclick="showTitle()">⬅ 戻る</button></div>
+      <div id="shopHeader"><span>🛒 漁業ショップ</span><button class="btn btn-primary" id="backBtn" onclick="showTitle()">⬅ 戻る</button></div>
       <div id="shopGrid"></div>
     </div>
   </div>
@@ -192,8 +193,8 @@ function showTitle() {
     </div>
     <div class="big">💰 ${totalPoints}MD</div>
     <div style="margin-top:10px;">
-      <button class="btn btn-shop" onclick="showShop()">🛒 工房ショップ</button>
-      <button class="btn btn-x" onclick="shareX()">X シェア</button>
+      <button class="btn btn-shop" onclick="showShop()">🛒 漁業ショップ</button>
+      <button class="btn btn-storage" onclick="showWarehouse()">🏭 倉庫</button>
       <br>
       <button class="btn btn-primary" onclick="startGame('coastal')">🛶 沿岸漁業</button>
       <button class="btn btn-primary" onclick="startGame('offshore')" ${st.boatLevel<2?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🚤 沖合漁業</button>
@@ -201,6 +202,8 @@ function showTitle() {
       <br>
       <button class="btn btn-process" onclick="showFactory()">🔧 加工</button>
       <button class="btn btn-sell" onclick="showMarket()">🏪 販売</button>
+      <br>
+      <button class="btn btn-x" onclick="shareX()">𝕏 シェア</button>
     </div>`;
 }
 
