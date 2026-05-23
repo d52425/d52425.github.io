@@ -57,6 +57,16 @@ canvas { display:block; image-rendering:pixelated; }
 .shopCard.cantBuy .buyBtn { background:#616161; color:#ccc; cursor:not-allowed; }
 .shopCard.bought .buyBtn { background:#388e3c; color:#fff; cursor:default; }
 #backBtn { margin-left:14px; }
+#warehouseWrap, #marketWrap { display:none; position:absolute; top:0; left:0; width:800px; height:600px; flex-direction:column; z-index:8; background:#0b2a4a; }
+#warehouseHeader, #marketHeader { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:#0d3058; color:#fff; font-weight:900; font-size:20px; border-bottom:2px solid #1a4a7a; }
+.whCard { background:#1a2f4a; border:2px solid #1a4a7a; border-radius:10px; padding:10px; color:#fff; text-align:center; transition:border-color .2s, transform .2s; }
+.whCard:hover { border-color:#4dd0e1; transform:translateY(-2px); }
+.whCard .icon { font-size:28px; margin-bottom:4px; }
+.whCard .name { font-weight:900; font-size:15px; }
+.whCard .qty { font-size:13px; color:#b3e5fc; margin:4px 0; }
+.whCard .qty span { color:#ffd54f; font-weight:900; }
+.whCard .price { font-size:12px; color:#90a4ae; }
+.whCard .total { font-size:13px; color:#81c784; font-weight:900; margin-top:2px; }
 </style>
 </head>
 <body>
@@ -251,6 +261,139 @@ function showTitle() {
     </div>`;
 }
 
+function showWarehouse() {
+  screen = 'warehouse';
+  overlay.style.display = 'flex';
+  shopWrap.style.display = 'none';
+  hud.style.display = 'none';
+  updateCoin();
+  buildWarehouse();
+}
+
+function buildWarehouse() {
+  let entries = Object.entries(fishStock).filter(([k, v]) => v > 0);
+  let totalValue = 0;
+  let html = '';
+  
+  if (entries.length === 0) {
+    html += `<p style="color:#9e9e9e;">📭 倉庫は空っぽです…</p>`;
+  } else {
+    html += `<div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; max-height:380px; overflow-y:auto; padding:4px;">`;
+    entries.sort((a, b) => b[1] - a[1]);
+    entries.forEach(([type, qty]) => {
+      const f = FISH_TYPES[type];
+      if (!f) return;
+      const sellPrice = Math.floor(f.pts * 0.8);
+      const value = sellPrice * qty;
+      totalValue += value;
+      const sp = SPRITE_MAP[type];
+      let icon = '🐟';
+      if (type === 'ebi') icon = '🦐';
+      else if (type === 'kani') icon = '🦀';
+      else if (type === 'ika') icon = '🦑';
+      else if (type === 'kurage') icon = '🪼';
+      else if (type === 'maguro') icon = '🐋';
+      else if (type === 'hotate') icon = '🐚';
+      
+      html += `
+        <div style="background:#1a2f4a; border:2px solid #1a4a7a; border-radius:10px; padding:10px; text-align:center;">
+          <div style="font-size:28px; margin-bottom:4px;">${icon}</div>
+          <div style="font-weight:900; font-size:15px; color:#fff;">${f.name}</div>
+          <div style="font-size:13px; color:#b3e5fc; margin:4px 0;">
+            在庫: <span style="color:#ffd54f; font-weight:900;">${qty}</span>匹
+          </div>
+          <div style="font-size:12px; color:#90a4ae;">販売価: ${sellPrice}MD/匹</div>
+          <div style="font-size:13px; color:#81c784; font-weight:900; margin-top:2px;">
+            計: ${value}MD
+          </div>
+          <button class="btn" style="margin-top:6px; padding:6px 14px; font-size:13px; background:#66bb6a; color:#fff;"
+            onclick="sellFish('${type}', 1)">売却</button>
+          <button class="btn" style="margin-top:4px; padding:6px 10px; font-size:12px; background:#ef5350; color:#fff;"
+            onclick="sellFish('${type}', ${qty})">全売却</button>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+  
+  overlayContent.innerHTML = `
+    <h1>🏭 倉庫</h1>
+    <p>釣った魚はここにストックされているよ〜！販売してMDに換金しよう〜🦐</p>
+    <div style="margin:10px 0; font-size:16px; color:#ffd54f; font-weight:900;">
+      総在庫価値: ${totalValue}MD
+    </div>
+    ${html}
+    <div style="margin-top:14px;">
+      ${entries.length > 0 ? `<button class="btn btn-max" onclick="sellAllFish()">💰 全魚一括販売</button><br>` : ''}
+      <button class="btn btn-primary" onclick="showTitle()">⬅ 戻る</button>
+    </div>`;
+}
+
+function sellFish(type, qty) {
+  const stock = fishStock[type] || 0;
+  if (stock <= 0) return;
+  qty = Math.min(qty, stock);
+  const f = FISH_TYPES[type];
+  if (!f) return;
+  const pricePer = Math.floor(f.pts * 0.8);
+  const earned = pricePer * qty;
+  
+  fishStock[type] = stock - qty;
+  if (fishStock[type] <= 0) delete fishStock[type];
+  totalPoints += earned;
+  saveData();
+  updateCoin();
+  buildWarehouse();
+}
+
+function sellAllFish() {
+  let entries = Object.entries(fishStock).filter(([k, v]) => v > 0);
+  if (entries.length === 0) return;
+  let totalEarned = 0;
+  entries.forEach(([type, qty]) => {
+    const f = FISH_TYPES[type];
+    if (!f) return;
+    totalEarned += Math.floor(f.pts * 0.8) * qty;
+  });
+  fishStock = {};
+  totalPoints += totalEarned;
+  saveData();
+  updateCoin();
+  buildWarehouse();
+}
+
+function showMarket() {
+  screen = 'market';
+  overlay.style.display = 'flex';
+  shopWrap.style.display = 'none';
+  hud.style.display = 'none';
+  updateCoin();
+  buildWarehouse();
+}
+
+function showFactory() {
+  screen = 'factory';
+  overlay.style.display = 'flex';
+  shopWrap.style.display = 'none';
+  hud.style.display = 'none';
+  updateCoin();
+  overlayContent.innerHTML = `
+    <h1>🔧 加工場</h1>
+    <p>Coming Soon…🦐 加工機能は準備中だよ〜！</p>
+    <button class="btn btn-primary" onclick="showTitle()">⬅ 戻る</button>`;
+}
+
+function showAquaculture() {
+  screen = 'aquaculture';
+  overlay.style.display = 'flex';
+  shopWrap.style.display = 'none';
+  hud.style.display = 'none';
+  updateCoin();
+  overlayContent.innerHTML = `
+    <h1>🦐 養殖場</h1>
+    <p>Coming Soon…🦐 養殖機能は準備中だよ〜！</p>
+    <button class="btn btn-primary" onclick="showTitle()">⬅ 戻る</button>`;
+}
+
 function showShop() {
   screen = 'shop'; overlay.style.display='none'; hud.style.display='none'; shopWrap.style.display='flex'; updateCoin();
   buildShop();
@@ -425,19 +568,24 @@ function showResult() {
   else if (gameScore>=500) { rank = '大漁漁師🎣'; col='#76ff03'; }
   else if (gameScore>=300) { rank = '腕利き漁師🐟'; col='#ff9100'; }
   else if (gameScore>=150) { rank = '若手漁師🦐'; col='#ff7043'; }
-  const earned = Math.floor(gameScore * 0.1);
-  totalPoints += earned; saveData(); updateCoin();
+  
+  // 倉庫に入った魚をカウント
+  let stockCount = Object.values(fishStock).reduce((a,b)=>a+b, 0);
+  
   overlayContent.innerHTML = `
     <h1>🎣 結果発表</h1>
-    <div class="big">${gameScore}MD</div>
-    <p>🍣 めんたいドル: +${earned}MD</p>
+    <div class="big">${gameScore} MD</div>
     <p>ランク: <span class="rank" style="color:${col}">${rank}</span></p>
+    <p style="color:#b3e5fc;">📦 倉庫に魚がストックされたよ〜！</p>
+    <p style="font-size:14px; color:#90a4ae;">（魚は🏭倉庫で売却してMDに換金できるよ〜）</p>
     <div style="margin-top:10px;">
       <button class="btn btn-primary" onclick="startGame(activeZone)">🎮 もう一回</button>
+      <button class="btn btn-sell" onclick="showWarehouse()">🏭 倉庫へ</button>
       <button class="btn btn-x" onclick="shareX(${gameScore}, '${rank}')">𝕏 シェア</button>
       <br>
       <button class="btn btn-primary" onclick="showTitle()">⬅ タイトルへ戻る</button>
     </div>`;
+  saveData();
 }
 
 function getMouseX(e) {
@@ -449,9 +597,8 @@ function getMouseX(e) {
 function returnToPort() {
   if (screen !== 'game') return;
   
-  // 釣っている途中でも強制帰港して魚をゲット
+  // 釣っている途中で帰港しても魚は既に倉庫に入っている
   if (hookState === 'reel' && caughtFish) {
-    accumulateFish(caughtFish.type);
     const fish = FISH_TYPES[caughtFish.type];
     particles.push({x:boatX+caughtFish.xOff,y:50,vx:0,vy:-2,life:1,col:fish.color,type:'sparkle'});
     gameScore += fish.score;
