@@ -13,7 +13,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta property="og:title" content="めんたい工房">
-<meta property="og:description" content="沿岸・沖合・遠洋、3つの漁業形態で魚を釣ろう！ボート、中型船、大型船を買い進め、めんたいドルを稼ごう！">
+<meta property="og:description" content="沿岸・沖合・遠洋・オホーツク海・ベーリング海、豊かな5つの海域で漁業体験！蟹工船・洋上加工船も登場。めんたいドルを稼ごう！">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://d52425.github.io/mk/">
 <meta property="og:image" content="https://d52425.github.io/mk/ogp.png?v=1.0.0">
@@ -115,7 +115,8 @@ const SPRITE_H = 800 / 3;
 const SPRITE_MAP = {
   aji:    [0,0], iwashi: [1,0], ebi:   [2,0], kaki:  [3,0], hotate:  [4,0],
   saba:   [0,1], ika:    [1,1], sanma: [2,1], kani:  [3,1], sawara:  [4,1],
-  maguro: [0,2], katsuo: [1,2], kinme: [2,2], sukedara:[3,2], kurage:  [4,2]
+  maguro: [0,2], katsuo: [1,2], kinme: [2,2], sukedara:[3,2], kurage:  [4,2],
+  sukedara_b:[5,2], hanasaki_kani:[6,2], hokke_b:[7,2], gokai:[8,2], kouika_b:[9,2], ika_b:[10,2]
 };
 
 let totalPoints = 0;
@@ -140,7 +141,7 @@ let fishList = [];
 let particles = [];
 let bubbles = [];
 let ripples = [];
-let activeZone = 'coastal'; // 'coastal' | 'offshore' | 'pelagic'
+let activeZone = 'coastal'; // 'coastal' | 'offshore' | 'pelagic' | 'bering' | 'okhotsk'
 
 const FISH_TYPES = {
   aji: { name:'アジ', pts:10, color:'#90caf9', r:10, speed:1.2, zone:'coastal' },
@@ -157,17 +158,29 @@ const FISH_TYPES = {
   katsuo: { name:'カツオ', pts:70, color:'#4dd0e1', r:18, speed:0.6, zone:'pelagic' },
   kinme: { name:'キンメ', pts:80, color:'#ffca28', r:18, speed:0.6, zone:'pelagic' },
   sukedara: { name:'スケトウダラ', pts:120, color:'#cddc39', r:17, speed:0.8, zone:'pelagic' },
-  kurage: { name:'クラゲ', pts:40, color:'#e1bee7', r:14, speed:0.4, zone:'pelagic' }
+  kurage: { name:'クラゲ', pts:40, color:'#e1bee7', r:14, speed:0.4, zone:'pelagic' },
+  sukedara_b: { name:'スケトウダラ', pts:150, color:'#aeea00', r:17, speed:0.9, zone:'bering' },
+  hanasaki_kani:{ name:'花咲ガニ', pts:80, color:'#d32f2f', r:14, speed:0.6, zone:'bering' },
+  hokke_b: { name:'ホッケ', pts:50, color:'#78909c', r:15, speed:0.8, zone:'bering' },
+  gokai: { name:'ゴカイ', pts:30, color:'#ff8a65', r:10, speed:0.9, zone:'bering' },
+  kouika_b:{ name:'コウイカ', pts:70, color:'#6a1b9a', r:16, speed:0.6, zone:'bering' },
+  kani_tarabagani:{ name:'タラバガニ', pts:120, color:'#8d2816', r:18, speed:0.5, zone:'okhotsk' },
+  kani_kegani: { name:'毛蟹', pts:90, color:'#704214', r:14, speed:0.7, zone:'okhotsk' },
+  kani_zuwai: { name:'ズワイガニ', pts:100, color:'#c62828', r:15, speed:0.6, zone:'okhotsk' },
+  kani_hanasaki:{ name:'花咲カニ(オホーツク)', pts:80, color:'#d32f2f', r:13, speed:0.8, zone:'okhotsk' },
+  ika_b:{ name:'スルメイカ', pts:55, color:'#ba68c8', r:15, speed:1.0, zone:'bering' }
 };
 
 const UPGRADES = [
   { id:'boat_base', name:'ボート', desc:'沿岸漁業が可能！アジ、イワシ、エビなどが獲れる。', price:0, maxLv:1, req:[] },
   { id:'boat_mid', name:'中型船', desc:'沖合漁業が可能！サバ、イカ、サンマ、カニなどが獲れる。', price:300, maxLv:1, req:['boat_base'] },
   { id:'boat_large', name:'大型船', desc:'遠洋漁業が可能！マグロ、カツオ、スケトウダラなどが獲れる。', price:800, maxLv:1, req:['boat_mid'] },
-  { id:'ship_spd', name:'船速UP', desc:'船の移動速度が上昇！レベルごとに+0.3倍', price:100, maxLv:99, req:[], priceScale:1.5 },
-  { id:'ship_sonar', name:'魚群レーダー', desc:'同時出現数が増加！レベルごとに+1匹', price:200, maxLv:99, req:[], priceScale:1.5 },
-  { id:'rod_fast', name:'高速釣り', desc:'釣り上げ速度が上昇！レベルごとに+0.5倍', price:150, maxLv:99, req:[], priceScale:1.5 },
-  { id:'rod_long', name:'深海ロッド', desc:'最大水深が拡張！レベルごとに+50', price:200, maxLv:99, req:[], priceScale:1.5 },
+  { id:'boat_okhotsk', name:'蟹工船', desc:'オホーツク海のカニ専門！ズワイガニ、毛蟹、タラバガニ、花咲カニが大量に獲れる。', price:50000, maxLv:1, req:['boat_large'] },
+  { id:'boat_bering', name:'洋上加工船', desc:'ベーリング海遠洋＆加工が可能！スケトウダラ、花咲ガニ、ホッケが大量に獲れる。', price:100000, maxLv:1, req:['boat_large'] },
+  { id:'ship_spd', name:'船速UP', desc:'船の移動速度が上昇！レベルごとに+0.3倍', price:100, maxLv:30, req:[], priceScale:1.5 },
+  { id:'ship_sonar', name:'魚群レーダー', desc:'同時出現数が増加！レベルごとに+1匹', price:200, maxLv:200, req:[], priceScale:1.5 },
+  { id:'rod_fast', name:'高速釣り', desc:'釣り上げ速度が上昇！レベルごとに+0.5倍', price:150, maxLv:10, req:[], priceScale:1.5 },
+  { id:'rod_long', name:'深海ロッド', desc:'最大水深が拡張！レベルごとに+50', price:200, maxLv:10, req:[], priceScale:1.5 },
   { id:'rod_gold', name:'ゴールド竿', desc:'スコアが1.5倍に！', price:300, maxLv:1, req:[] },
   { id:'rod_platinum', name:'プラチナ竿', desc:'スコアが2.0倍に！ゴールド竿の上位互換。', price:600, maxLv:1, req:['rod_gold'] },
   { id:'auto_man', name:'自動釣りマン', desc:'自動で釣ってくれる漁船！最大5隻まで', price:350, maxLv:5, req:[], priceScale:2.0 },
@@ -193,10 +206,11 @@ function loadSave() {
                     auto_man:'auto_man', auto_man1:'auto_man', auto_man2:'auto_man',
                     rod_gold:'rod_gold', rod_gold1:'rod_gold',
                     triple_rod:'triple_rod', big_hook:'big_hook',
-                    boat_base:'boat_base', boat_mid:'boat_mid', boat_large:'boat_large'};
+                    boat_base:'boat_base', boat_mid:'boat_mid', boat_large:'boat_large',
+                    boat_okhotsk:'boat_okhotsk'};
         d.items.forEach(id=>{ const k=mg[id]; if(k){ upgradeLevels[k]=(upgradeLevels[k]||0)+1; } });
         // maxLv制限
-        ['boat_base','boat_mid','boat_large','rod_gold','triple_rod','big_hook'].forEach(k=>{
+        ['boat_base','boat_mid','boat_large','boat_okhotsk','boat_bering','rod_gold','triple_rod','big_hook'].forEach(k=>{
           if(upgradeLevels[k]>1) upgradeLevels[k]=1;
         });
         if(upgradeLevels.auto_man>5) upgradeLevels.auto_man=5;
@@ -214,6 +228,8 @@ function getStats() {
   if (upgradeLevels.boat_base) boatLevel = 1;
   if (upgradeLevels.boat_mid) boatLevel = 2;
   if (upgradeLevels.boat_large) boatLevel = 3;
+  if (upgradeLevels.boat_okhotsk) boatLevel = 4;
+  if (upgradeLevels.boat_bering) boatLevel = 5;
 
   let spdLv = upgradeLevels.ship_spd || 0;
   let spdMult = 1.0 + spdLv * 0.3;
@@ -248,6 +264,8 @@ function showTitle() {
   if (st.boatLevel===1) boatName = 'ボート（沿岸）';
   else if (st.boatLevel===2) boatName = '中型船（沖合）';
   else if (st.boatLevel===3) boatName = '大型船（遠洋）';
+  else if (st.boatLevel===4) boatName = '蟹工船（オホーツク海）';
+  else if (st.boatLevel===5) boatName = '洋上加工船（ベーリング海）';
   overlayContent.innerHTML = `
     <h1>🎣 めんたい工房 <small style="font-size:0.4em;opacity:0.7;">v1.0.0</small></h1>
     <p>漁船を選んで、海へ出港しよう！</p>
@@ -259,9 +277,13 @@ function showTitle() {
       <button class="btn btn-shop" onclick="showShop()">🛒 漁業ショップ</button>
       <button class="btn btn-storage" onclick="showWarehouse()">🏭 倉庫</button>
       <br>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:10px;">
       <button class="btn btn-primary" onclick="startGame('coastal')">🛶 沿岸漁業</button>
       <button class="btn btn-primary" onclick="startGame('offshore')" ${st.boatLevel<2?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🚤 沖合漁業</button>
       <button class="btn btn-primary" onclick="startGame('pelagic')" ${st.boatLevel<3?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🚢 遠洋漁業</button>
+      <button class="btn btn-primary" onclick="startGame('okhotsk')" ${st.boatLevel<4?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🦀 オホーツク海（蟹工船）</button>
+      <button class="btn btn-primary" onclick="startGame('bering')" ${st.boatLevel<5?'disabled style=\'opacity:0.4;cursor:not-allowed;\'':''}>🦐 ベーリング海（洋上加工）</button>
+      </div>
       <br>
       <button class="btn btn-primary" style="background:#ff8c00;" onclick="showAquaculture()">🦐 養殖場へ</button>
       <button class="btn btn-process" onclick="showFactory()">🔧 加工</button>
@@ -518,7 +540,7 @@ function startGame(zone='coastal') {
   activeZone = zone;
   gameTime = 60; gameScore = 0; timer = 0; boatX = 400; targetBoatX = 400;
   const zoneBox = document.getElementById('zoneBox');
-  if (zoneBox) { zoneBox.textContent = zone==='coastal'?'沿岸漁業':zone==='offshore'?'沖合漁業':'遠洋漁業'; }
+  if (zoneBox) { zoneBox.textContent = zone==='coastal'?'沿岸漁業':zone==='offshore'?'沖合漁業':zone==='okhotsk'?'オホーツク海（カニ漁）':zone==='bering'?'ベーリング海（洋上加工）':'遠洋漁業'; }
   hookState = 'idle'; hookY = 70; hookOffX = st.tripleRod ? 30 : 0;
   hookMaxDepth = st.depth; caughtFish = null; playerCaughtList = [];
   autoBoats = [];
@@ -563,7 +585,7 @@ function shareX(score, rank) {
   if (score != null && rank != null) {
     text = `めんたい工房で ${score}MD 獲得！ランク：${rank}\n🎣 あなたも釣りに来ない？`;
   } else {
-    text = `🎣 めんたい工房で漁業体験しよう！沿岸・沖合・遠洋の3つの漁業形態でめんたいドルを稼ごう〜\n🦐 遊んでみてね〜`;
+    text = `🎣 めんたい工房で漁業体験しよう！沿岸・沖合・遠洋・オホーツク海・ベーリング海、豊かな海域でめんたいドルを稼ごう〜\n🦐 遊んでみてね〜`;
   }
   const url = encodeURIComponent(location.href);
   const shareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
@@ -833,7 +855,7 @@ function drawBoat(bx, hy, cf, isPlayer, st) {
   let bodyColor = isPlayer ? '#8d6e63' : '#6a1b9a';
   let hullColor = isPlayer ? '#3e2723' : '#311b92';
 
-  if (bL === 3) { // 大型船
+  if (bL >= 3) { // 大型船・蟹工船・洋上加工船
     let w=48, h=16;
     ctx.fillStyle=hullColor; ctx.fillRect(bx-w,65,w*2,h);
     ctx.fillStyle=bodyColor; ctx.fillRect(bx-w+4,62,w*2-8,6);
@@ -845,7 +867,8 @@ function drawBoat(bx, hy, cf, isPlayer, st) {
     ctx.beginPath(); ctx.moveTo(bx,65); ctx.lineTo(bx,20); ctx.stroke();
     ctx.fillStyle=bodyColor; ctx.beginPath(); ctx.moveTo(bx-36,76); ctx.lineTo(bx+36,76); ctx.lineTo(bx+26,88); ctx.lineTo(bx-26,88); ctx.closePath(); ctx.fill();
     ctx.fillStyle='#f0f0f0'; ctx.beginPath(); ctx.arc(bx+10,55,4,0,Math.PI*2); ctx.fill();
-    ctx.font='bold 10px sans-serif'; ctx.fillStyle='#ffd54f'; ctx.fillText('🚢', bx-6, 86);
+    let emoji = bL===4 ? '🦀' : bL===5 ? '🦐' : '🚢';
+    ctx.font='bold 10px sans-serif'; ctx.fillStyle='#ffd54f'; ctx.fillText(emoji, bx-6, 86);
   } else if (bL === 2) { // 中型船
     let w=32, h=14;
     ctx.fillStyle=hullColor; ctx.fillRect(bx-w-4,65,w*2+8,h);
@@ -876,10 +899,107 @@ function drawBoat(bx, hy, cf, isPlayer, st) {
   if (!isPlayer) { ctx.font='bold 12px sans-serif'; ctx.fillStyle='#ffd54f'; ctx.fillText('🤖', bx-6, 50); }
 }
 
+function drawBeringFish(f) {
+  const r = f.r, type = f.type;
+  ctx.save(); ctx.translate(f.x,f.y); if(f.vx>0) ctx.scale(-1,1);
+  
+  if (type === 'sukedara_b') {
+    // スケトウダラ - 緑がかった体に白い斑点
+    ctx.fillStyle = '#8bc34a'; ctx.beginPath(); ctx.ellipse(0,0,r*1.5,r*0.8,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#aeea00'; ctx.beginPath(); ctx.ellipse(0,0,r*1.2,r*0.6,0,0,Math.PI*2); ctx.fill();
+    // 白い斑点
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; 
+    ctx.beginPath(); ctx.arc(-r*0.2,-r*  0.3,r*0.25,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(r*0.3,-r*0.1,r*0.18,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-r*0.5,r*0.2,r*0.15,0,Math.PI*2); ctx.fill();
+    // しっぽ
+    ctx.fillStyle = '#689f38'; ctx.beginPath(); ctx.moveTo(-r*1.3,-r*0.3); ctx.lineTo(-r*2.0,0); ctx.lineTo(-r*1.3,r*0.3); ctx.closePath(); ctx.fill();
+    // 背びれ
+    ctx.fillStyle = '#558b2f'; ctx.beginPath(); ctx.moveTo(-r*0.3,-r*0.6); ctx.lineTo(0,-r*1.3); ctx.lineTo(r*0.4,-r*0.6); ctx.closePath(); ctx.fill();
+    // 目
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*0.7,-r*0.15,r*0.2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#1b5e20'; ctx.beginPath(); ctx.arc(r*0.75,-r*0.15,r*0.1,0,Math.PI*2); ctx.fill();
+  }
+  else if (type === 'hokke_b') {
+    // ホッケ - 灰色がかった細長い体、うろこ模様
+    ctx.fillStyle = '#607d8b'; ctx.beginPath(); ctx.ellipse(0,0,r*1.5,r*0.8,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#78909c'; ctx.beginPath(); ctx.ellipse(0,0,r*1.2,r*0.6,0,0,Math.PI*2); ctx.fill();
+    // 縞模様
+    for(let i=-2;i<=2;i++) { ctx.strokeStyle='rgba(69,90,100,0.4)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(i*r*0.4,-r*0.5); ctx.lineTo(i*r*0.4,r*0.5); ctx.stroke(); }
+    // しっぽ
+    ctx.fillStyle = '#455a64'; ctx.beginPath(); ctx.moveTo(-r*1.3,-r*0.3); ctx.lineTo(-r*2.0,0); ctx.lineTo(-r*1.3,r*0.3); ctx.closePath(); ctx.fill();
+    // 目
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*0.7,-r*0.15,r*0.18,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#263238'; ctx.beginPath(); ctx.arc(r*0.73,-r*0.15,r*0.08,0,Math.PI*2); ctx.fill();
+  }
+  else if (type === 'hanasaki_kani') {
+    // 花咲ガニ - 赤い甲羅、はさみ2本
+    ctx.fillStyle = '#c62828'; ctx.beginPath(); ctx.ellipse(0,0,r*1.2,r*0.9,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#e53935'; ctx.beginPath(); ctx.ellipse(0,0,r*0.9,r*0.65,0,0,Math.PI*2); ctx.fill();
+    // 棘っぽい模様
+    ctx.strokeStyle = '#8f1c1c'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-r*0.3,-r*0.6); ctx.lineTo(0,-r*0.95); ctx.lineTo(r*0.3,-r*0.6); ctx.stroke();
+    // はさみ
+    ctx.fillStyle = '#b71c1c'; ctx.fillRect(-r*1.6,-r*0.4,r*0.5,r*0.5); ctx.fillRect(r*1.1,-r*0.4,r*0.5,r*0.5);
+    ctx.fillStyle = '#ffcdd2'; ctx.fillRect(-r*1.55,-r*0.35,r*0.35,r*0.35); ctx.fillRect(r*1.15,-r*0.35,r*0.35,r*0.35);
+    // 足
+    ctx.strokeStyle = '#c62828'; ctx.lineWidth = 2;
+    for(let side=-1; side<=1; side+=2) {
+      for(let i=0;i<3;i++) { ctx.beginPath(); ctx.moveTo(side*r*0.3,r*0.3+i*r*0.15); ctx.lineTo(side*r*1.2,r*0.5+i*r*0.25); ctx.stroke(); }
+    }
+    // 目
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-r*0.2,-r*0.3,r*0.18,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*0.2,-r*0.3,r*0.18,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(-r*0.18,-r*0.3,r*0.08,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(r*0.22,-r*0.3,r*0.08,0,Math.PI*2); ctx.fill();
+  }
+  else if (type === 'gokai') {
+    // ゴカイ - うねうねした小さな魚
+    ctx.strokeStyle = '#ff8a65'; ctx.lineWidth = r*0.35; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-r*1.8,0);
+    for(let i=-8;i<=8;i++) { ctx.lineTo(i*r*0.2, Math.sin(i*0.8)*r*0.4); }
+    ctx.stroke();
+    // 頭
+    ctx.fillStyle = '#ff7043'; ctx.beginPath(); ctx.arc(r*1.2,0,r*0.35,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*1.3,-r*0.1,r*0.12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#bf360c'; ctx.beginPath(); ctx.arc(r*1.32,-r*0.1,r*0.06,0,Math.PI*2); ctx.fill();
+  }
+  else if (type === 'kouika_b' || type === 'ika_b') {
+    // コウイカ/スルメイカ - 紫色のイカ
+    const isKouika = type === 'kouika_b';
+    ctx.fillStyle = isKouika ? '#6a1b9a' : '#ba68c8';
+    ctx.beginPath(); ctx.ellipse(0,-r*0.2,r*0.9,r*1.1,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = isKouika ? '#8e24aa' : '#ce93d8';
+    ctx.beginPath(); ctx.ellipse(0,-r*0.1,r*0.6,r*0.8,0,0,Math.PI*2); ctx.fill();
+    // えんぴつ
+    ctx.fillStyle = isKouika ? '#4a148c' : '#9c27b0';
+    ctx.fillRect(-r*0.6,r*0.15,r*1.2,r*0.6);
+    ctx.fillStyle = isKouika ? '#7b1fa2' : '#ab47bc';
+    ctx.fillRect(-r*0.15,r*0.2,r*0.3,r*0.5);
+    // 目
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-r*0.25,-r*0.5,r*0.2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*0.25,-r*0.5,r*0.2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(-r*0.22,-r*0.5,r*0.1,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(r*0.28,-r*0.5,r*0.1,0,Math.PI*2); ctx.fill();
+  }
+  else {
+    // フォールバック
+    ctx.fillStyle = f.color || '#ccc'; ctx.beginPath(); ctx.ellipse(0,0,r*1.4,r*r,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-r*1.1,0); ctx.lineTo(-r*1.8,-r*0.6); ctx.lineTo(-r*1.8,r*0.6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*0.6,-r*0.2,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(r*0.7,-r*0.2,1.5,0,Math.PI*2); ctx.fill();
+  }
+  
+  ctx.restore();
+}
+
 function draw() {
   let pal;
   switch(activeZone) {
     case 'offshore':  pal = {bg:'#0c3540', sky:'#1565c0', surface:'#0288d1', water:'#013a4a'}; break;
+    case 'okhotsk':   pal = {bg:'#1a1a2e', sky:'#16213e', surface:'#4a5568', water:'#0d1117'}; break;
+    case 'bering':    pal = {bg:'#1a2420', sky:'#37474f', surface:'#78909c', water:'#263238'}; break;
     case 'pelagic':   pal = {bg:'#1a0826', sky:'#311b92', surface:'#6a1b9a', water:'#240024'}; break;
     case 'coastal':
     default:          pal = {bg:'#0b2a4a', sky:'#1565c0', surface:'#0277bd', water:'#01579b'}; break;
@@ -896,7 +1016,12 @@ function draw() {
   drawBoat(boatX, hookY, caughtFish, true, stDraw);
   autoBoats.forEach(ab=>{ drawBoat(ab.x, ab.hookY, ab.caughtFish, false, stDraw); });
   // fish
+  const beringTypes = ['sukedara_b','hanasaki_kani','hokke_b','gokai','kouika_b','ika_b'];
   fishList.forEach(f=>{
+    if (beringTypes.includes(f.type)) {
+      drawBeringFish(f);
+      return;
+    }
     const sp = SPRITE_MAP[f.type];
     if(!sp || !fishSpriteImg.complete) {
       ctx.save(); ctx.translate(f.x,f.y); if(f.vx<0) ctx.scale(-1,1);
