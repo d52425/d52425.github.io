@@ -124,7 +124,8 @@ let hookState = 'idle'; // idle, drop, reel
 let hookY = 70;
 let hookMaxDepth = 500;
 let hookOffX = 0; // triple rod offset
-let autoBoats = []; // {x, targetX, hookState, hookY, caughtFish, timer}
+let playerCaughtList = [];
+let autoBoats = [];
 let caughtFish = null;
 let fishList = [];
 let particles = [];
@@ -510,7 +511,7 @@ function startGame(zone='coastal') {
   const zoneBox = document.getElementById('zoneBox');
   if (zoneBox) { zoneBox.textContent = zone==='coastal'?'沿岸漁業':zone==='offshore'?'沖合漁業':'遠洋漁業'; }
   hookState = 'idle'; hookY = 70; hookOffX = st.tripleRod ? 30 : 0;
-  hookMaxDepth = st.depth; caughtFish = null;
+  hookMaxDepth = st.depth; caughtFish = null; playerCaughtList = [];
   autoBoats = [];
   const sectionW = 800 / Math.max(st.autoMen, 1);
   for (let i=0; i<st.autoMen; i++) {
@@ -676,7 +677,7 @@ function update(dt) {
     let reelSpd = 3.0 * st.hookSpdMult;
     let hookXs = st.tripleRod ? [boatX-30, boatX, boatX+30] : [boatX];
     let pHook = {state:hookState, y:hookY, caughtFish:caughtFish};
-    updateHook(pHook, hookXs, st, dropSpd, reelSpd);
+    updateHook(pHook, hookXs, st, dropSpd, reelSpd, null, playerCaughtList);
     hookState = pHook.state; hookY = pHook.y; caughtFish = pHook.caughtFish;
     // auto boats
     autoBoats.forEach((ab, idx) => {
@@ -732,7 +733,7 @@ function update(dt) {
          setY: y => ab.hookY = y,
          reset: () => { ab.hookState = 'idle'; ab.hookY = 70; }
         }, 
-        autoHookXs, st, dropSpd, reelSpd, ab
+        autoHookXs, st, dropSpd, reelSpd, ab, null
       );
     });
     // fish
@@ -754,16 +755,14 @@ function update(dt) {
   }
 }
 
-function updateHook(hookObj, hookXs, st, dropSpd, reelSpd, abObj) {
+function updateHook(hookObj, hookXs, st, dropSpd, reelSpd, abObj, playerCatches) {
   let useDirect = !hookObj.setState;
   let setState = useDirect ? (s=> hookObj.state=s) : (s=> hookObj.setState(s));
   let setY = useDirect ? (y=> hookObj.y=y) : (y=> hookObj.setY(y));
-  let caughtList = abObj ? abObj.caughtFishList : hookObj.caughtFishList;
-  if (!caughtList) {
-    caughtList = [];
-    if (abObj) abObj.caughtFishList = caughtList;
-    else hookObj.caughtFishList = caughtList;
-  }
+  let caughtList;
+  if (abObj) caughtList = abObj.caughtFishList || (abObj.caughtFishList = []);
+  else if (playerCatches) caughtList = playerCatches;
+  else caughtList = hookObj.caughtFishList || (hookObj.caughtFishList = []);
   const multiHook = hookXs.length > 1;
   for (let hi = 0; hi < hookXs.length; hi++) {
     let hx = hookXs[hi];
