@@ -616,32 +616,22 @@ const game = {
     this.renderUpgrades();
     this.updateUI();
 
-    // スマホなら最初のタブをアクティブに
-    if (window.innerWidth <= 768) {
-      this.switchTab('sea');
-    }
+    // ショップ初期タブ
+    this.switchShop('fish');
 
     this.loop();
   },
 
-  switchTab(tabName) {
-    // タブボタンの状態切り替え
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    tabBtns.forEach(btn => {
-      if (btn.dataset.target === tabName) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+  switchShop(shopName) {
+    const tabs = document.querySelectorAll('.shop-tab');
+    tabs.forEach(btn => {
+      if (btn.dataset.shop === shopName) btn.classList.add('active');
+      else btn.classList.remove('active');
     });
-    // パネルの表示切り替え
-    const panels = document.querySelectorAll('.panel');
-    panels.forEach(panel => {
-      if (panel.dataset.tab === tabName) {
-        panel.classList.add('active');
-      } else {
-        panel.classList.remove('active');
-      }
+    const panels = document.querySelectorAll('.shop-panel');
+    panels.forEach(p => {
+      if (p.dataset.shop === shopName) p.classList.add('active');
+      else p.classList.remove('active');
     });
   },
 
@@ -817,11 +807,11 @@ const game = {
     }
 
     // 波紋エフェクト
-    const box = document.querySelector('.fish-clickable');
-    if (box) {
+    const zone = e && e.target ? e.target.closest('.clicker-zone') : null;
+    if (zone) {
       const ripple = document.createElement('div');
-      ripple.className = 'fish-click-effect';
-      box.appendChild(ripple);
+      ripple.className = 'click-effect';
+      zone.appendChild(ripple);
       setTimeout(() => ripple.remove(), 500);
     }
   },
@@ -829,12 +819,13 @@ const game = {
   actionMake(e) {
     const cost = this.makeCostRoe * this.clickMakeAmount;
     if (this.roe < cost) {
-      this.pulseBtn('btn-make', true);
+      // コスト不足の視覚フィードバック
+      const zone = e && e.target ? e.target.closest('.clicker-zone') : null;
+      if (zone) { zone.style.animation = 'shake 0.3s'; setTimeout(() => zone.style.animation = '', 300); }
       return;
     }
     this.roe -= cost;
     this.mentai += this.clickMakeAmount;
-    this.pulseBtn('btn-make');
     this.pulseRes('mentai');
     if (Math.random() < 0.1) {
       this.addLog(`🔴 極上のめんたいこができた〜！ +${this.clickMakeAmount}`, 'craft');
@@ -849,27 +840,26 @@ const game = {
     }
 
     // 波紋エフェクト
-    const box = document.querySelector('.mentai-clickable');
-    if (box) {
+    const zone = e && e.target ? e.target.closest('.clicker-zone') : null;
+    if (zone) {
       const ripple = document.createElement('div');
-      ripple.className = 'mentai-click-effect';
-      box.appendChild(ripple);
+      ripple.className = 'click-effect';
+      zone.appendChild(ripple);
       setTimeout(() => ripple.remove(), 500);
     }
   },
 
   actionSell(e) {
     if (this.mentai < 1) {
-      this.pulseBtn('btn-sell', true);
-      this.pulseBtn('btn-shop', true);
+      // 在庫不足の視覚フィードバック
+      const zone = e && e.target ? e.target.closest('.clicker-zone') : null;
+      if (zone) { zone.style.animation = 'shake 0.3s'; setTimeout(() => zone.style.animation = '', 300); }
       return;
     }
     const price = Math.floor(this.baseSellPrice * this.sellMulti);
     this.mentai -= 1;
     this.money += price;
     this.pulseRes('money');
-    this.pulseBtn('btn-sell');
-    this.pulseBtn('btn-shop');
     if (Math.random() < 0.15) {
       this.addLog(`💰 「うまい！」と評判！ +${price}円`, 'sell');
     }
@@ -881,11 +871,11 @@ const game = {
     }
 
     // 波紋エフェクト
-    const box = document.querySelector('.money-clickable');
-    if (box) {
+    const zone = e && e.target ? e.target.closest('.clicker-zone') : null;
+    if (zone) {
       const ripple = document.createElement('div');
-      ripple.className = 'money-click-effect';
-      box.appendChild(ripple);
+      ripple.className = 'click-effect';
+      zone.appendChild(ripple);
       setTimeout(() => ripple.remove(), 500);
     }
   },
@@ -1062,22 +1052,34 @@ const game = {
     document.getElementById('res-money').textContent  = this.fmt(this.money);
 
     const sellPrice = Math.floor(this.baseSellPrice * this.sellMulti);
-    document.getElementById('sell-price').textContent = sellPrice;
     for (const el of document.querySelectorAll('.sell-price-static')) {
       el.textContent = sellPrice;
     }
+
+    // ショップのお金表示
+    const shopMoneyEl = document.getElementById('shop-money');
+    if (shopMoneyEl) shopMoneyEl.textContent = this.fmt(this.money);
 
     document.getElementById('rate-roe').textContent    = '+' + this.autoFishRate.toFixed(1) + ' /秒';
     document.getElementById('rate-mentai').textContent = '+' + this.autoMakeRate.toFixed(1) + ' /秒';
     const autoMoney = this.autoSellRate * sellPrice;
     document.getElementById('rate-money').textContent  = '+' + autoMoney.toFixed(1) + ' /秒';
 
-    // ボタン無効化
-    const makeCost = this.makeCostRoe * this.clickMakeAmount;
-    document.getElementById('btn-make').disabled = this.roe < makeCost;
-    const sellOk = this.mentai >= 1;
-    document.getElementById('btn-sell').disabled = !sellOk;
-    document.getElementById('btn-shop').disabled = !sellOk;
+    // クリックヒント更新
+    const hintFish = document.getElementById('click-hint-fish');
+    if (hintFish) hintFish.textContent = `🐟 +${this.clickFishAmount}`;
+    const hintMake = document.getElementById('click-hint-make');
+    if (hintMake) hintMake.textContent = `魚卵 ${this.makeCostRoe * this.clickMakeAmount} → 🔴 +${this.clickMakeAmount}`;
+    const hintSell = document.getElementById('click-hint-sell');
+    if (hintSell) hintSell.innerHTML = `🔴 1 → 💰 +<span class="sell-price-static">${sellPrice}</span>`;
+
+    // シミュレーションステータス
+    const simStatus = document.getElementById('sim-status');
+    if (simStatus) {
+      const isActive = this.autoFishRate > 0 || this.autoMakeRate > 0 || this.autoSellRate > 0;
+      simStatus.textContent = isActive ? '生産稼働中！' : '生産停止中...';
+      simStatus.classList.toggle('active', isActive);
+    }
 
     // アップグレード状態 (ボタン無効などの即時反映)
     for (const key in this.upgrades) {
@@ -1268,3 +1270,6 @@ window.addEventListener('visibilitychange', () => {
 
 // スタート
 game.init();
+
+// visualizerにgame参照を渡す
+if (window.MentaiViz) window.MentaiViz.setGame(game);
