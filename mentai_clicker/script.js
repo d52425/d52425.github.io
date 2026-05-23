@@ -806,6 +806,12 @@ const game = {
       this.showFloatText(e.clientX, e.clientY - 20, `+${amount}🐟`, 'fish');
     }
 
+    // 蓄積パーティクル（クリック時は2〜3個）
+    if (window.MentaiViz) {
+      const count = 2 + Math.floor(Math.random());
+      window.MentaiViz.normal(e.clientX, e.clientY, count, 'fish');
+    }
+
     // 波紋エフェクト
     const zone = e && e.target ? e.target.closest('.clicker-zone') : null;
     if (zone) {
@@ -839,6 +845,12 @@ const game = {
       this.showFloatText(e.clientX, e.clientY - 20, `+${this.clickMakeAmount}🔴`, 'mentai');
     }
 
+    // 蓄積パーティクル（クリック時は2〜3個）
+    if (window.MentaiViz) {
+      const count = 2 + Math.floor(Math.random());
+      window.MentaiViz.normal(e.clientX, e.clientY, count, 'mentai');
+    }
+
     // 波紋エフェクト
     const zone = e && e.target ? e.target.closest('.clicker-zone') : null;
     if (zone) {
@@ -868,6 +880,12 @@ const game = {
     // フロートテキスト
     if (e && e.clientX) {
       this.showFloatText(e.clientX, e.clientY - 20, `+${price}💰`, 'money');
+    }
+
+    // 蓄積パーティクル（クリック時は2〜3個）
+    if (window.MentaiViz) {
+      const count = 2 + Math.floor(Math.random());
+      window.MentaiViz.normal(e.clientX, e.clientY, count, 'money');
     }
 
     // 波紋エフェクト
@@ -986,6 +1004,7 @@ const game = {
 
   // ---- ゲームループ ----
   lastTick: performance.now(),
+  _vizTimers: { fish: 0, make: 0, sell: 0 },
   loop() {
     const now = performance.now();
     const dt = (now - this.lastTick) / 1000;
@@ -1004,6 +1023,15 @@ const game = {
     // 漁業自動化
     if (this.autoFishRate > 0) {
       this.roe += this.autoFishRate * dt;
+      // 蓄積パーティクル
+      this._vizTimers.fish += this.autoFishRate * dt;
+      while (this._vizTimers.fish >= 1) {
+        this._vizTimers.fish -= 1;
+        if (window.MentaiViz) {
+          const x = Math.random() * (window.innerWidth * 0.6) + window.innerWidth * 0.2;
+          window.MentaiViz.normal(x, -20, 1, 'fish');
+        }
+      }
     }
 
     // 製造自動化
@@ -1012,6 +1040,15 @@ const game = {
       const canMake = Math.min(want, this.roe / this.makeCostRoe);
       this.roe -= canMake * this.makeCostRoe;
       this.mentai += canMake;
+      // 蓄積パーティクル（実際に製造できた分だけ）
+      this._vizTimers.make += canMake;
+      while (this._vizTimers.make >= 1) {
+        this._vizTimers.make -= 1;
+        if (window.MentaiViz) {
+          const x = Math.random() * (window.innerWidth * 0.6) + window.innerWidth * 0.2;
+          window.MentaiViz.normal(x, -20, 1, 'mentai');
+        }
+      }
     }
 
     // 販売自動化
@@ -1020,6 +1057,15 @@ const game = {
       const canSell = Math.min(want, this.mentai);
       this.mentai -= canSell;
       this.money += canSell * Math.floor(this.baseSellPrice * this.sellMulti);
+      // 蓄積パーティクル（実際に売れた分だけ）
+      this._vizTimers.sell += canSell;
+      while (this._vizTimers.sell >= 1) {
+        this._vizTimers.sell -= 1;
+        if (window.MentaiViz) {
+          const x = Math.random() * (window.innerWidth * 0.6) + window.innerWidth * 0.2;
+          window.MentaiViz.normal(x, -20, 1, 'money');
+        }
+      }
     }
 
     this.updateUI();
