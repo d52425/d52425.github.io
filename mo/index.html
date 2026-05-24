@@ -63,58 +63,58 @@
   <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(7,15,26,0.6)_100%)]"></div>
 </div>
 
-<!-- モバイル：画面一杯 / PC：真ん中にカード -->
+<!-- モバイル：画面いっぱい / PC：375×667 固定 -->
 <div class="sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6">
-  <div class="w-full max-w-[430px] h-[100dvh] sm:h-auto sm:min-h-[85vh] sm:max-h-[95vh] flex flex-col bg-gradient-to-b from-deepsea-800/75 via-deepsea-900/90 to-deepsea-900/95 px-4 py-5 sm:rounded-[2rem] sm:border sm:border-deepsea-600/50 sm:backdrop-blur-md sm:shadow-[0_0_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.05)]">
+  <div class="w-full h-[100dvh] sm:w-[375px] sm:h-[667px] flex flex-col bg-gradient-to-b from-deepsea-800/75 via-deepsea-900/90 to-deepsea-900/95 px-4 py-4 sm:rounded-[1.5rem] sm:border sm:border-deepsea-600/50 sm:backdrop-blur-md sm:shadow-[0_0_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.05)]">
 
     <!-- ヘッダー -->
-    <header class="text-center shrink-0 mb-4">
-      <div class="mb-1">
-        <i data-lucide="shrimp" class="w-10 h-10 mx-auto text-mentai-500 drop-shadow-[0_0_20px_rgba(255,120,120,0.4)]"></i>
+    <header class="text-center shrink-0 mb-3">
+      <div class="mb-0.5">
+        <i data-lucide="shrimp" class="w-8 h-8 mx-auto text-mentai-500 drop-shadow-[0_0_20px_rgba(255,120,120,0.4)]"></i>
       </div>
-      <h1 class="text-2xl font-black tracking-widest text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+      <h1 class="text-xl font-black tracking-widest text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
         めんたいオーシャン
       </h1>
-      <p class="mt-0.5 text-[11px] text-deepsea-400 tracking-[0.3em] uppercase">The Bering Sea Quota</p>
-      <p class="text-[10px] text-deepsea-500 tracking-wider">港拠点メニュー</p>
+      <p class="mt-0.5 text-[10px] text-deepsea-400 tracking-[0.3em] uppercase">The Bering Sea Quota</p>
+      <p class="text-[9px] text-deepsea-500 tracking-wider">港拠点メニュー</p>
     </header>
 
     <!-- メインエリア（スクロール可） -->
-    <main class="flex-1 overflow-y-auto no-scrollbar space-y-3">
+    <main class="flex-1 overflow-y-auto no-scrollbar space-y-2.5">
 
       <!-- 漁業・物流エリア -->
-      <section class="bg-deepsea-800/80 border border-deepsea-600/70 rounded-xl p-3.5 shadow-card backdrop-blur-sm">
-        <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-deepsea-600">
-          <i data-lucide="factory" class="w-5 h-5 text-deepsea-300"></i>
-          <h2 class="text-sm font-bold text-deepsea-300 tracking-wide">漁業・物流エリア</h2>
-          <span class="ml-auto text-[9px] text-deepsea-500 tracking-wider">帰港して最初</span>
+      <section class="bg-deepsea-800/80 border border-deepsea-600/70 rounded-xl p-3 shadow-card backdrop-blur-sm">
+        <div class="flex items-center gap-2 mb-2 pb-1.5 border-b border-deepsea-600">
+          <i data-lucide="factory" class="w-4 h-4 text-deepsea-300"></i>
+          <h2 class="text-xs font-bold text-deepsea-300 tracking-wide">漁業・物流エリア</h2>
+          <span class="ml-auto text-[8px] text-deepsea-500 tracking-wider">帰港して最初</span>
         </div>
-        <div class="space-y-2">
-          <button class="tap-active w-full text-left flex items-start gap-3 p-3 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
+        <div class="space-y-1.5">
+          <button class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
             <div class="shrink-0 mt-0.5">
-              <i data-lucide="fish" class="w-5 h-5 text-deepsea-300"></i>
+              <i data-lucide="fish" class="w-4 h-4 text-deepsea-300"></i>
             </div>
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-0.5">
-                <span class="text-[13px] font-bold text-deepsea-100">陸上加工工場</span>
-                <span class="text-[9px] font-bold text-deepsea-900 bg-sunset px-2 py-0.5 rounded-full shrink-0 ml-2">売却</span>
+                <span class="text-xs font-bold text-deepsea-100">陸上加工工場</span>
+                <span class="text-[8px] font-bold text-deepsea-900 bg-sunset px-1.5 py-0.5 rounded-full shrink-0 ml-2">売却</span>
               </div>
-              <p class="text-[10px] text-deepsea-400 leading-relaxed">
+              <p class="text-[9px] text-deepsea-400 leading-relaxed">
                 水揚げしたスケトウダラを売却。鮮度と需給で価格変動。
               </p>
             </div>
           </button>
 
-          <button class="tap-active w-full text-left flex items-start gap-3 p-3 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
+          <button class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
             <div class="shrink-0 mt-0.5">
-              <i data-lucide="snowflake" class="w-5 h-5 text-deepsea-300"></i>
+              <i data-lucide="snowflake" class="w-4 h-4 text-deepsea-300"></i>
             </div>
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-0.5">
-                <span class="text-[13px] font-bold text-deepsea-100">氷・燃料補給（RSW）</span>
-                <span class="text-[9px] font-bold text-deepsea-900 bg-sunset px-2 py-0.5 rounded-full shrink-0 ml-2">補給</span>
+                <span class="text-xs font-bold text-deepsea-100">氷・燃料補給（RSW）</span>
+                <span class="text-[8px] font-bold text-deepsea-900 bg-sunset px-1.5 py-0.5 rounded-full shrink-0 ml-2">補給</span>
               </div>
-              <p class="text-[10px] text-deepsea-400 leading-relaxed">
+              <p class="text-[9px] text-deepsea-400 leading-relaxed">
                 冷海水チルド氷と重油を満タン補給。怠ると魚が腐る必須スポット。
               </p>
             </div>
@@ -123,38 +123,38 @@
       </section>
 
       <!-- 造船・技術エリア -->
-      <section class="bg-deepsea-800/80 border border-deepsea-600/70 rounded-xl p-3.5 shadow-card backdrop-blur-sm">
-        <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-deepsea-600">
-          <i data-lucide="wrench" class="w-5 h-5 text-deepsea-300"></i>
-          <h2 class="text-sm font-bold text-deepsea-300 tracking-wide">造船・技術エリア</h2>
-          <span class="ml-auto text-[9px] text-deepsea-500 tracking-wider">船と漁具強化</span>
+      <section class="bg-deepsea-800/80 border border-deepsea-600/70 rounded-xl p-3 shadow-card backdrop-blur-sm">
+        <div class="flex items-center gap-2 mb-2 pb-1.5 border-b border-deepsea-600">
+          <i data-lucide="wrench" class="w-4 h-4 text-deepsea-300"></i>
+          <h2 class="text-xs font-bold text-deepsea-300 tracking-wide">造船・技術エリア</h2>
+          <span class="ml-auto text-[8px] text-deepsea-500 tracking-wider">船と漁具強化</span>
         </div>
-        <div class="space-y-2">
-          <button class="tap-active w-full text-left flex items-start gap-3 p-3 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
+        <div class="space-y-1.5">
+          <button class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
             <div class="shrink-0 mt-0.5">
-              <i data-lucide="cog" class="w-5 h-5 text-deepsea-300"></i>
+              <i data-lucide="cog" class="w-4 h-4 text-deepsea-300"></i>
             </div>
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-0.5">
-                <span class="text-[13px] font-bold text-deepsea-100">ポート・プレシジョン・ファブ</span>
-                <span class="text-[9px] font-bold text-deepsea-900 bg-sunset px-2 py-0.5 rounded-full shrink-0 ml-2">改造</span>
+                <span class="text-xs font-bold text-deepsea-100">ポート・プレシジョン・ファブ</span>
+                <span class="text-[8px] font-bold text-deepsea-900 bg-sunset px-1.5 py-0.5 rounded-full shrink-0 ml-2">改造</span>
               </div>
-              <p class="text-[10px] text-deepsea-400 leading-relaxed">
+              <p class="text-[9px] text-deepsea-400 leading-relaxed">
                 船体修理、エンジン馬力アップ、ウィンチ強化。
               </p>
             </div>
           </button>
 
-          <button class="tap-active w-full text-left flex items-start gap-3 p-3 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
+          <button class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
             <div class="shrink-0 mt-0.5">
-              <i data-lucide="stretch-horizontal" class="w-5 h-5 text-deepsea-300"></i>
+              <i data-lucide="stretch-horizontal" class="w-4 h-4 text-deepsea-300"></i>
             </div>
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-0.5">
-                <span class="text-[13px] font-bold text-deepsea-100">ネットロフト</span>
-                <span class="text-[9px] font-bold text-deepsea-900 bg-sunset px-2 py-0.5 rounded-full shrink-0 ml-2">購入</span>
+                <span class="text-xs font-bold text-deepsea-100">ネットロフト</span>
+                <span class="text-[8px] font-bold text-deepsea-900 bg-sunset px-1.5 py-0.5 rounded-full shrink-0 ml-2">購入</span>
               </div>
-              <p class="text-[10px] text-deepsea-400 leading-relaxed">
+              <p class="text-[9px] text-deepsea-400 leading-relaxed">
                 トロール網の購入・修繕、高性能ソナー、センサー。
               </p>
             </div>
@@ -163,38 +163,38 @@
       </section>
 
       <!-- コミュニティ・管理エリア -->
-      <section class="bg-deepsea-800/80 border border-deepsea-600/70 rounded-xl p-3.5 shadow-card backdrop-blur-sm">
-        <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-deepsea-600">
-          <i data-lucide="users" class="w-5 h-5 text-deepsea-300"></i>
-          <h2 class="text-sm font-bold text-deepsea-300 tracking-wide">コミュニティ・管理</h2>
-          <span class="ml-auto text-[9px] text-deepsea-500 tracking-wider">情報と人材</span>
+      <section class="bg-deepsea-800/80 border border-deepsea-600/70 rounded-xl p-3 shadow-card backdrop-blur-sm">
+        <div class="flex items-center gap-2 mb-2 pb-1.5 border-b border-deepsea-600">
+          <i data-lucide="users" class="w-4 h-4 text-deepsea-300"></i>
+          <h2 class="text-xs font-bold text-deepsea-300 tracking-wide">コミュニティ・管理</h2>
+          <span class="ml-auto text-[8px] text-deepsea-500 tracking-wider">情報と人材</span>
         </div>
-        <div class="space-y-2">
-          <button class="tap-active w-full text-left flex items-start gap-3 p-3 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
+        <div class="space-y-1.5">
+          <button class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
             <div class="shrink-0 mt-0.5">
-              <i data-lucide="clipboard-list" class="w-5 h-5 text-deepsea-300"></i>
+              <i data-lucide="clipboard-list" class="w-4 h-4 text-deepsea-300"></i>
             </div>
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-0.5">
-                <span class="text-[13px] font-bold text-deepsea-100">フィッシャーマンズ・ギルド</span>
-                <span class="text-[9px] font-bold text-deepsea-900 bg-sky-400 px-2 py-0.5 rounded-full shrink-0 ml-2">情報</span>
+                <span class="text-xs font-bold text-deepsea-100">フィッシャーマンズ・ギルド</span>
+                <span class="text-[8px] font-bold text-deepsea-900 bg-sky-400 px-1.5 py-0.5 rounded-full shrink-0 ml-2">情報</span>
               </div>
-              <p class="text-[10px] text-deepsea-400 leading-relaxed">
+              <p class="text-[9px] text-deepsea-400 leading-relaxed">
                 クォーター購入・特別依頼、気象・流氷情報と嵐予測。
               </p>
             </div>
           </button>
 
-          <button class="tap-active w-full text-left flex items-start gap-3 p-3 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
+          <button class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
             <div class="shrink-0 mt-0.5">
-              <i data-lucide="beer" class="w-5 h-5 text-deepsea-300"></i>
+              <i data-lucide="beer" class="w-4 h-4 text-deepsea-300"></i>
             </div>
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-0.5">
-                <span class="text-[13px] font-bold text-deepsea-100">アンカー・イン</span>
-                <span class="text-[9px] font-bold text-deepsea-900 bg-green-400 px-2 py-0.5 rounded-full shrink-0 ml-2">休息</span>
+                <span class="text-xs font-bold text-deepsea-100">アンカー・イン</span>
+                <span class="text-[8px] font-bold text-deepsea-900 bg-green-400 px-1.5 py-0.5 rounded-full shrink-0 ml-2">休息</span>
               </div>
-              <p class="text-[10px] text-deepsea-400 leading-relaxed">
+              <p class="text-[9px] text-deepsea-400 leading-relaxed">
                 暖炉と木造の空間。クルースカウト、噂話、モチベ回復。
               </p>
             </div>
@@ -205,16 +205,16 @@
     </main>
 
     <!-- 出港ボタン -->
-    <div class="shrink-0 mt-3">
-      <button class="tap-active w-full flex items-center justify-center gap-2 py-3 rounded-full text-deepsea-900 font-black text-base tracking-widest bg-gradient-to-b from-sunset to-sunset-dark shadow-btn-depart border border-white/10">
-        <i data-lucide="ship" class="w-5 h-5"></i>
+    <div class="shrink-0 mt-2.5">
+      <button class="tap-active w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-deepsea-900 font-black text-sm tracking-widest bg-gradient-to-b from-sunset to-sunset-dark shadow-btn-depart border border-white/10">
+        <i data-lucide="ship" class="w-4 h-4"></i>
         <span>ベーリング海へ出港</span>
       </button>
     </div>
 
     <!-- フッター -->
-    <footer class="shrink-0 mt-2 text-center">
-      <p class="text-[9px] text-deepsea-500 tracking-widest">© めんたい漁業組合 ― 健康は最高のスパイス</p>
+    <footer class="shrink-0 mt-1.5 text-center">
+      <p class="text-[8px] text-deepsea-500 tracking-widest">© めんたい漁業組合 ― 健康は最高のスパイス</p>
     </footer>
 
   </div>
