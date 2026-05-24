@@ -119,28 +119,6 @@ const SPRITE_MAP = {
   sukedara_b:[5,2], hanasaki_kani:[6,2], hokke_b:[7,2], kouika_b:[9,2], ika_b:[10,2]
 };
 
-// ベーリング海・オホーツク海スプライト
-const beringOkhotskImg = new Image();
-beringOkhotskImg.src = 'sprites.png';
-const BO_COLS = 5;
-const BO_ROWS = 2;
-const BO_W = 1983 / BO_COLS;  // ≒ 397
-const BO_H = 793 / BO_ROWS;   // ≒ 397
-const BO_SPRITE_MAP = {
-  // Row 0: オホーツク海(カニ)
-  kani_tarabagani: [0,0],
-  kani_takaashi:   [1,0],
-  kani_zuwai:      [2,0],
-  kani_kegani:     [3,0],
-  kani_hanasaki:   [4,0],
-  // Row 1: ベーリング海
-  sukedara_b:      [0,1],
-  kouika_b:        [1,1],
-  hanasaki_kani:   [2,1],
-  ika_b:           [3,1],
-  hokke_b:         [4,1],
-};
-
 let totalPoints = 0;
 let ownedItems = [];  // 旧互換用
 let upgradeLevels = {}; // { ship_spd: 5, auto_man: 3, ... }
@@ -614,16 +592,6 @@ function shareX(score, rank) {
   window.open(shareUrl, '_blank', 'width=600,height=400');
 }
 
-// 自動再スタートタイマー用グローバル変数
-let autoRestartTimerId = null;
-
-function cancelAutoRestart() {
-  if (autoRestartTimerId) {
-    clearInterval(autoRestartTimerId);
-    autoRestartTimerId = null;
-  }
-}
-
 function showResult() {
   screen = 'result'; overlay.style.display='flex'; hud.style.display='none'; updateCoin();
   let rank = 'エビの足🦐'; let col = '#9e9e9e';
@@ -636,49 +604,19 @@ function showResult() {
   // 倉庫に入った魚をカウント
   let stockCount = Object.values(fishStock).reduce((a,b)=>a+b, 0);
   
-  // 自動再スタートタイマー
-  let autoRestartSec = 10;
-  
-  function updateAutoTimer() {
-    const el = document.getElementById('autoTimer');
-    if (el && screen === 'result') {
-      el.textContent = autoRestartSec + '秒後にもう１回スタート！';
-    }
-  }
-  
-  // 前回のタイマーが残ってたらクリア
-  cancelAutoRestart();
-  
   overlayContent.innerHTML = `
     <h1>🎣 結果発表</h1>
     <div class="big">${gameScore} MD</div>
     <p>ランク: <span class="rank" style="color:${col}">${rank}</span></p>
     <p style="color:#b3e5fc;">📦 倉庫に魚がストックされたよ〜！</p>
     <p style="font-size:14px; color:#90a4ae;">（魚は🏭倉庫で売却してMDに換金できるよ〜）</p>
-    <p id="autoTimer" style="font-size:18px; color:#ffd54f; font-weight:900; margin:8px 0;">10秒後にもう１回スタート！</p>
     <div style="margin-top:10px;">
-      <button class="btn btn-primary" onclick="cancelAutoRestart(); startGame(activeZone)">🎮 もう１回</button>
-      <button class="btn btn-sell" onclick="cancelAutoRestart(); showWarehouse()">🏭 倉庫へ</button>
-      <button class="btn btn-x" onclick="cancelAutoRestart(); shareX(${gameScore}, '${rank}')">𝕏 シェア</button>
+      <button class="btn btn-primary" onclick="startGame(activeZone)">🎮 もう一回</button>
+      <button class="btn btn-sell" onclick="showWarehouse()">🏭 倉庫へ</button>
+      <button class="btn btn-x" onclick="shareX(${gameScore}, '${rank}')">𝕏 シェア</button>
       <br>
-      <button class="btn btn-primary" onclick="cancelAutoRestart(); showTitle()">⬅ タイトルへ戻る</button>
+      <button class="btn btn-primary" onclick="showTitle()">⬅ タイトルへ戻る</button>
     </div>`;
-  
-  // タイマー開始
-  setTimeout(() => {
-    updateAutoTimer();
-    autoRestartTimerId = setInterval(() => {
-      autoRestartSec--;
-      updateAutoTimer();
-      if (autoRestartSec <= 0) {
-        cancelAutoRestart();
-        if (screen === 'result') {
-          startGame(activeZone);
-        }
-      }
-    }, 1000);
-  }, 100);
-  
   saveData();
 }
 
@@ -962,32 +900,10 @@ function drawBoat(bx, hy, cf, isPlayer, st) {
 }
 
 function drawBeringFish(f) {
-  const type = f.type;
-  const map = BO_SPRITE_MAP[type];
-  const useSprite = beringOkhotskImg.complete && beringOkhotskImg.naturalWidth > 0 && map;
-  
-  ctx.save(); ctx.translate(f.x, f.y); if(f.vx>0) ctx.scale(-1,1);
-  
-  if (useSprite) {
-    const [sx, sy] = map;
-    const r = f.r;
-    // 適度なサイズにスケーリング（max(r*2, 80)程度に）
-    const sz = Math.max(r * 2.2, 50);
-    ctx.drawImage(beringOkhotskImg,
-      sx * BO_W, sy * BO_H, BO_W, BO_H,
-      -sz/2, -sz/2, sz, sz);
-  } else {
-    // フォールバック: Canvas描画
-    fallbackDrawBeringFish(f);
-  }
-  
-  ctx.restore();
-}
-
-function fallbackDrawBeringFish(f) {
   const r = f.r, type = f.type;
+  ctx.save(); ctx.translate(f.x,f.y); if(f.vx>0) ctx.scale(-1,1);
+  
   if (type === 'sukedara_b') {
-    // スケトウダラ...
     // スケトウダラ - 緑がかった体に白い斑点
     ctx.fillStyle = '#8bc34a'; ctx.beginPath(); ctx.ellipse(0,0,r*1.5,r*0.8,0,0,Math.PI*2); ctx.fill();
     ctx.fillStyle = '#aeea00'; ctx.beginPath(); ctx.ellipse(0,0,r*1.2,r*0.6,0,0,Math.PI*2); ctx.fill();
@@ -1062,39 +978,24 @@ function fallbackDrawBeringFish(f) {
     ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*0.6,-r*0.2,3,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(r*0.7,-r*0.2,1.5,0,Math.PI*2); ctx.fill();
   }
-}
-
-function drawOkhotskCrab(f) {
-  const type = f.type;
-  const map = BO_SPRITE_MAP[type];
-  const useSprite = beringOkhotskImg.complete && beringOkhotskImg.naturalWidth > 0 && map;
-  
-  ctx.save(); ctx.translate(f.x, f.y); if(f.vx>0) ctx.scale(-1,1);
-  
-  if (useSprite) {
-    const [sx, sy] = map;
-    const r = f.r;
-    const sz = Math.max(r * 2.2, 50);
-    ctx.drawImage(beringOkhotskImg,
-      sx * BO_W, sy * BO_H, BO_W, BO_H,
-      -sz/2, -sz/2, sz, sz);
-  } else {
-    fallbackDrawOkhotskCrab(f);
-  }
   
   ctx.restore();
 }
 
-function fallbackDrawOkhotskCrab(f) {
+function drawOkhotskCrab(f) {
   const r = f.r, type = f.type;
+  ctx.save(); ctx.translate(f.x,f.y); if(f.vx>0) ctx.scale(-1,1);
+  // カニ共通: 甲羅の色
   let bodyColor='#c62828', lightColor='#e53935', darkColor='#8f1c1c';
   if (type==='kani_tarabagani') { bodyColor='#8d2816'; lightColor='#b5351c'; darkColor='#5c1a0e'; }
   else if (type==='kani_kegani') { bodyColor='#704214'; lightColor='#8b5a2b'; darkColor='#4a2c0a'; }
   else if (type==='kani_zuwai') { bodyColor='#c62828'; lightColor='#e53935'; darkColor='#8f1c1c'; }
   else if (type==='kani_hanasaki') { bodyColor='#d32f2f'; lightColor='#ef5350'; darkColor='#9a0007'; }
   else if (type==='kani_takaashi') { bodyColor='#e65100'; lightColor='#ff8a65'; darkColor='#bf360c'; }
+  // 甲羅
   ctx.fillStyle = bodyColor; ctx.beginPath(); ctx.ellipse(0,0,r*1.2,r*0.85,0,0,Math.PI*2); ctx.fill();
   ctx.fillStyle = lightColor; ctx.beginPath(); ctx.ellipse(0,0,r*0.9,r*0.6,0,0,Math.PI*2); ctx.fill();
+  // 棘っぽい模様
   if (type==='kani_takaashi') {
     ctx.strokeStyle = darkColor; ctx.lineWidth=1.2;
     for(let i=-2;i<=2;i++) { ctx.beginPath(); ctx.moveTo(i*r*0.25,-r*0.5); ctx.lineTo(i*r*0.3,-r*0.85); ctx.stroke(); }
@@ -1102,6 +1003,7 @@ function fallbackDrawOkhotskCrab(f) {
     ctx.strokeStyle = darkColor; ctx.lineWidth=1.5;
     ctx.beginPath(); ctx.moveTo(-r*0.3,-r*0.55); ctx.lineTo(0,-r*0.9); ctx.lineTo(r*0.3,-r*0.55); ctx.stroke();
   }
+  // はさみ（大きさ変化）
   const clawScale = type==='kani_tarabagani'?1.3:type==='kani_takaashi'?1.15:type==='kani_zuwai'?1.0:type==='kani_kegani'?0.85:0.9;
   ctx.fillStyle = darkColor; 
   ctx.fillRect(-r*(1.5+clawScale*0.1), -r*0.4, r*0.5*clawScale, r*0.5*clawScale);
@@ -1109,6 +1011,7 @@ function fallbackDrawOkhotskCrab(f) {
   ctx.fillStyle = '#ffcdd2'; 
   ctx.fillRect(-r*(1.45+clawScale*0.1), -r*0.35, r*0.35*clawScale, r*0.35*clawScale);
   ctx.fillRect(r*(1.05+clawScale*0.05), -r*0.35, r*0.35*clawScale, r*0.35*clawScale);
+  // 足（タカアシガニは長い！）
   ctx.strokeStyle = bodyColor; ctx.lineWidth = type==='kani_takaashi'?1.6:2;
   const legExtra = type==='kani_takaashi'?1.5:1.0;
   for(let side=-1; side<=1; side+=2) {
@@ -1120,6 +1023,7 @@ function fallbackDrawOkhotskCrab(f) {
       ctx.stroke();
     }
   }
+  // 目
   ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-r*0.2,-r*0.28,r*0.16,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(r*0.2,-r*0.28,r*0.16,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(-r*0.18,-r*0.28,r*0.07,0,Math.PI*2); ctx.fill();
