@@ -59,17 +59,17 @@
 <!-- PC版背景画像レイヤー -->
 <div class="fixed inset-0 -z-10 hidden sm:block">
   <img src="bg.png" class="w-full h-full object-cover object-center" alt="">
-  <div class="absolute inset-0 bg-black/50"></div>
-  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(7,15,26,0.6)_100%)]"></div>
+  <div class="absolute inset-0 bg-black/50 transition-opacity duration-700" id="bg-dark-overlay"></div>
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(7,15,26,0.6)_100%)] transition-opacity duration-700" id="bg-radial-overlay"></div>
 </div>
 
 <!-- モバイル：画面いっぱい / PC：375×667 固定 -->
-<div class="sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6">
-  <div class="w-full h-[100dvh] sm:w-[375px] sm:h-[667px] flex flex-col bg-gradient-to-b from-deepsea-800/75 via-deepsea-900/90 to-deepsea-900/95 px-4 py-4 sm:rounded-[1.5rem] sm:border sm:border-deepsea-600/50 sm:backdrop-blur-md sm:shadow-[0_0_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.05)]">
+<div class="sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6 transition-opacity duration-500" id="game-container">
+  <div class="w-full h-[100dvh] sm:w-[360px] sm:h-[808px] flex flex-col bg-gradient-to-b from-deepsea-800/75 via-deepsea-900/90 to-deepsea-900/95 px-4 py-4 sm:rounded-[1.5rem] sm:border sm:border-deepsea-600/50 sm:backdrop-blur-md sm:shadow-[0_0_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.05)]">
 
     <!-- ヘッダー -->
     <header class="text-center shrink-0 mb-3">
-      <div class="mb-0.5">
+      <div class="mb-0.5 cursor-pointer tap-active" id="shrimp-toggle">
         <i data-lucide="shrimp" class="w-8 h-8 mx-auto text-mentai-500 drop-shadow-[0_0_20px_rgba(255,120,120,0.4)]"></i>
       </div>
       <h1 class="text-xl font-black tracking-widest text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
@@ -90,7 +90,7 @@
           <span class="ml-auto text-[8px] text-deepsea-500 tracking-wider">帰港して最初</span>
         </div>
         <div class="space-y-1.5">
-          <button class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
+          <button onclick="location.href='fab.html'" class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
             <div class="shrink-0 mt-0.5">
               <i data-lucide="fish" class="w-4 h-4 text-deepsea-300"></i>
             </div>
@@ -136,7 +136,7 @@
             </div>
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-0.5">
-                <span class="text-xs font-bold text-deepsea-100">ポート・プレシジョン・ファブ</span>
+                <span class="text-xs font-bold text-deepsea-100">ポート・プレシジョン・ドック</span>
                 <span class="text-[8px] font-bold text-deepsea-900 bg-sunset px-1.5 py-0.5 rounded-full shrink-0 ml-2">改造</span>
               </div>
               <p class="text-[9px] text-deepsea-400 leading-relaxed">
@@ -222,6 +222,40 @@
 
 <script>
   lucide.createIcons();
+
+  // えびタップで背景モード切り替え
+  (function() {
+    const shrimp = document.getElementById('shrimp-toggle');
+    const gameContainer = document.getElementById('game-container');
+    const overlay1 = document.getElementById('bg-dark-overlay');
+    const overlay2 = document.getElementById('bg-radial-overlay');
+    let isVisible = true;
+
+    function showGame() {
+      isVisible = true;
+      gameContainer.style.opacity = '1';
+      gameContainer.style.pointerEvents = 'auto';
+      overlay1.style.opacity = '1';
+      overlay2.style.opacity = '1';
+    }
+
+    function hideGame() {
+      isVisible = false;
+      gameContainer.style.opacity = '0';
+      gameContainer.style.pointerEvents = 'none';
+      overlay1.style.opacity = '0';
+      overlay2.style.opacity = '0';
+    }
+
+    shrimp.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (isVisible) {
+        hideGame();
+        // 背景モード中は画面どこタップしてもゲームに戻る
+        document.addEventListener('click', showGame, { once: true });
+      }
+    });
+  })();
 </script>
 </body>
 </html>
