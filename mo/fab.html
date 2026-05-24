@@ -56,15 +56,15 @@
 </head>
 <body class="bg-deepsea-900 text-deepsea-200 font-sans antialiased">
 
-<!-- PC版背景画像レイヤー -->
-<div class="fixed inset-0 -z-10 hidden sm:block">
+<!-- 背景画像レイヤー -->
+<div class="fixed inset-0 -z-10">
   <img src="bg.png" class="w-full h-full object-cover object-center" alt="">
   <div class="absolute inset-0 bg-black/50"></div>
   <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(7,15,26,0.6)_100%)]"></div>
 </div>
 
 <!-- モバイル：画面いっぱい / PC：360×808 固定 -->
-<div class="sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6">
+<div class="min-h-screen flex items-center justify-center p-0 sm:p-6">
   <div class="w-full h-[100dvh] sm:w-[360px] sm:h-[808px] flex flex-col bg-gradient-to-b from-deepsea-800/75 via-deepsea-900/90 to-deepsea-900/95 sm:rounded-[1.5rem] sm:border sm:border-deepsea-600/50 sm:backdrop-blur-md sm:shadow-[0_0_60px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.05)]">
 
     <!-- ヘッダー -->
