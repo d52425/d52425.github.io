@@ -105,7 +105,7 @@
             </div>
           </button>
 
-          <button class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
+          <button onclick="openSupplyModal()" class="tap-active w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg border border-deepsea-600 bg-gradient-to-b from-deepsea-700/95 to-deepsea-800/95 hover:border-deepsea-400 transition-colors">
             <div class="shrink-0 mt-0.5">
               <i data-lucide="snowflake" class="w-4 h-4 text-deepsea-300"></i>
             </div>
@@ -220,6 +220,9 @@
   </div>
 </div>
 
+  <!-- 出港モーダル -->
+  ...
+
 <script>
   lucide.createIcons();
 
@@ -255,6 +258,54 @@
         document.addEventListener('click', showGame, { once: true });
       }
     });
+  })();
+  // ===== 補給モーダル =====
+  (function() {
+    var modal = document.getElementById('supply-modal');
+    var iceBar = document.getElementById('ice-bar');
+    var fuelBar = document.getElementById('fuel-bar');
+    var iceText = document.getElementById('ice-text');
+    var fuelText = document.getElementById('fuel-text');
+    var moneyText = document.getElementById('money-text');
+    
+    window.openSupplyModal = function() {
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
+      // アイコン再描画
+      setTimeout(function() { lucide.createIcons(); }, 10);
+    };
+    
+    window.closeSupplyModal = function() {
+      modal.style.opacity = '0';
+      modal.style.pointerEvents = 'none';
+    };
+    
+    window.doSupply = function(type) {
+      var iceCost = 250;
+      var fuelCost = 480;
+      var bothCost = 730;
+      
+      // 仮のステータス更新（実際はローカルストレージ等で管理）
+      if (type === 'ice' || type === 'both') {
+        iceBar.style.width = '100%';
+        iceText.textContent = '20,000 / 20,000 lb';
+      }
+      if (type === 'fuel' || type === 'both') {
+        fuelBar.style.width = '100%';
+        fuelText.textContent = '8,000 / 8,000 gal';
+      }
+      
+      // お金減らす
+      var currentMoney = 142580;
+      var cost = type === 'ice' ? iceCost : type === 'fuel' ? fuelCost : bothCost;
+      moneyText.textContent = '$' + (currentMoney - cost).toLocaleString();
+      
+      // 補給完了フィードバック
+      setTimeout(function() {
+        closeSupplyModal();
+        alert('補給完了！ ' + (type === 'ice' ? '氷' : type === 'fuel' ? '燃料' : '氷と燃料') + 'が満タンになりました！');
+      }, 500);
+    };
   })();
 </script>
 </body>
