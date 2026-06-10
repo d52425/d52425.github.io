@@ -2,7 +2,16 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Shari's 3D VTuber Prototype</title>
+    <title>3D MaiVTuber prototype.</title>
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="3D MaiVTuber prototype.">
+    <meta property="og:description" content="3D MaiVTuber prototype.">
+    <meta property="og:url" content="https://d52425.github.io/maimai/">
+    <meta property="og:image" content="https://d52425.github.io/maimai/ogp.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MaiMai Prototype">
+    <meta name="twitter:description" content="3D MaiVTuber prototype.">
+    <meta name="twitter:image" content="https://d52425.github.io/maimai/ogp.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { margin: 0; overflow: hidden; background: #10131a; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
@@ -22,6 +31,7 @@
     <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/TransformControls.js"></script>
 
     <script>
         // --- Three.js の初期設定 ---
@@ -42,6 +52,13 @@
         const loader = new THREE.GLTFLoader();
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
+        const transformControls = new THREE.TransformControls(camera, renderer.domElement);
+        transformControls.setMode('translate');
+        scene.add(transformControls);
+
+        transformControls.addEventListener('dragging-changed', (event) => {
+            controls.enabled = !event.value;
+        });
 
         // モデルが暗くならないように最低限の照明を入れる
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
@@ -55,10 +72,19 @@
         fillLight.position.set(-2, 1, -2);
         scene.add(fillLight);
 
+        const gridHelper = new THREE.GridHelper(20, 20, 0xffffff, 0xffffff);
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0.25;
+        gridHelper.position.y = -1.5;
+        scene.add(gridHelper);
+
+        const groundY = gridHelper.position.y;
+
         function frameModel(model) {
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
+            const min = box.min;
 
             const maxDim = Math.max(size.x, size.y, size.z);
             const fov = camera.fov * (Math.PI / 180);
@@ -104,6 +130,7 @@
                 return;
             }
 
+            transformControls.detach();
             scene.remove(activeModel);
             activeModel.traverse((node) => {
                 if (node.isMesh) {
@@ -143,6 +170,8 @@
                         activeModel = gltf.scene;
                         scene.add(activeModel);
                         frameModel(activeModel);
+                        activeModel.position.y = groundY - new THREE.Box3().setFromObject(activeModel).min.y;
+                        transformControls.attach(activeModel);
 
                         modelStatus.textContent = `${selectedModel.name} is displayed.`;
                         console.log(`✅ ${selectedModel.name} の読み込みが完了しました: ${paths[index]}`);
