@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Shari's 3D VTuber Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #10131a; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        canvas { display: block; }
+    </style>
+</head>
+<body> 
+    <div class="fixed top-4 left-4 z-10 rounded-2xl border border-white/10 bg-slate-950/80 p-4 text-white shadow-2xl backdrop-blur-md">
+        <div class="mb-3 text-sm font-semibold tracking-wide text-slate-200">Model Switcher</div>
+        <button id="switchButton" class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 active:scale-[0.98]">
+            次のモデルへ
+        </button>
+        <div id="modelStatus" class="mt-3 text-xs text-slate-300">Loading model...</div>
+    </div>
+
+    <!-- Three.js本体とローダーを標準のスクリプトとしてロード -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // --- Three.js の初期設定 ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x10131a);
+        
+        // カメラの設定 (視点)
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 3;
+
+        // レンダラーの設定 (画面への描画)
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // ★★★ GLTFLoader と OrbitControls のインスタンス化 ★★★
+        // 標準のTHREEオブジェクトからロードする形でアクセスする
+        const loader = new THREE.GLTFLoader();
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // モデルが暗くならないように最低限の照明を入れる
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.8);
+        directionalLight.position.set(2, 4, 3);
+        scene.add(directionalLight);
+
+        const fillLight = new THREE.DirectionalLight(0x9cc6ff, 0.8);
+        fillLight.position.set(-2, 1, -2);
+        scene.add(fillLight);
+
+        function frameModel(model) {
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+            cameraZ *= 1.6;
+
+            camera.position.set(center.x, center.y, center.z + cameraZ);
+            camera.near = Math.max(maxDim / 100, 0.01);
+            camera.far = Math.max(maxDim * 100, 1000);
+            camera.updateProjectionMatrix();
+
+            controls.target.copy(center);
+            controls.update();
+        }
+
+        const modelStatus = document.getElementById('modelStatus');
+        const switchButton = document.getElementById('switchButton');
+
+        const models = [
+            {
+                name: 'Copilot3D A',
+                paths: [
+                    './Copilot3D-3a70d9ce-ec54-4ac1-bbc5-79653113e64d.glb',
+                    '../Copilot3D-3a70d9ce-ec54-4ac1-bbc5-79653113e64d.glb',
+                    '/Copilot3D-3a70d9ce-ec54-4ac1-bbc5-79653113e64d.glb',
+                ],
+            },
+            {
+                name: 'Copilot3D B',
+                paths: [
+                    './Copilot3D-cd76be7a-96b4-442d-80e4-03f7800d364f.glb',
+                    '../Copilot3D-cd76be7a-96b4-442d-80e4-03f7800d364f.glb',
+                    '/Copilot3D-cd76be7a-96b4-442d-80e4-03f7800d364f.glb',
+                ],
+            },
+        ];
+
+        let activeModel = null;
+        let activeModelIndex = 1;
+
+        function clearActiveModel() {
+            if (!activeModel) {
+                return;
+            }
+
+            scene.remove(activeModel);
+            activeModel.traverse((node) => {
+                if (node.isMesh) {
+                    node.geometry?.dispose?.();
+                    if (Array.isArray(node.material)) {
+                        node.material.forEach((material) => material?.dispose?.());
+                    } else {
+                        node.material?.dispose?.();
+                    }
+                }
+            });
+            activeModel = null;
+        }
+
+        function loadModel(index) {
+            const selectedModel = models[index];
+            if (!selectedModel) {
+                return;
+            }
+
+            activeModelIndex = index;
+            switchButton.textContent = `次: ${models[(index + 1) % models.length].name}`;
+            modelStatus.textContent = `Loading ${selectedModel.name}...`;
+
+            const tryLoad = (paths, index = 0) => {
+                if (index >= paths.length) {
+                    modelStatus.textContent = `Failed to load ${selectedModel.name}.`;
+                    console.error(`❌ ${selectedModel.name} の読み込みに失敗しました。候補パスをすべて試しました。`);
+                    return;
+                }
+
+                loader.load(
+                    paths[index],
+                    function (gltf) {
+                        clearActiveModel();
+
+                        activeModel = gltf.scene;
+                        scene.add(activeModel);
+                        frameModel(activeModel);
+
+                        modelStatus.textContent = `${selectedModel.name} is displayed.`;
+                        console.log(`✅ ${selectedModel.name} の読み込みが完了しました: ${paths[index]}`);
+                    },
+                    undefined,
+                    function () {
+                        tryLoad(paths, index + 1);
+                    }
+                );
+            };
+
+            tryLoad(selectedModel.paths);
+        }
+
+        switchButton.addEventListener('click', () => {
+            const nextIndex = (activeModelIndex + 1) % models.length;
+            loadModel(nextIndex);
+        });
+
+        // --- 3Dモデルの読み込み処理 ---
+        // ★★★ ここを必ず確認して、ファイル名と一致させてね！ ★★★
+        loadModel(activeModelIndex);
+
+        // --- カメラ操作と描画ループ ---
+        function animate() {
+            requestAnimationFrame(animate); // 次のフレームを要求
+            
+            controls.update(); 
+            renderer.render(scene, camera);
+        }
+
+        // ウィンドウサイズ変更時の処理
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // アニメーション開始！
+        animate();
+    </script>
+</body>
+</html>
